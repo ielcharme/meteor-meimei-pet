@@ -1,0 +1,6 @@
+interface:
+  display_name: "边牧妹妹 · Meteor Meimei"
+  short_description: "Install and maintain Lucie's animated meteor border-collie pet"
+  default_prompt: "Use $meteor-meimei-pet to install or manage 边牧妹妹 as my Codex pet or macOS desktop companion."
+policy:
+  allow_implicit_invocation: true
