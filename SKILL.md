@@ -10,7 +10,7 @@ Use the bundled, already-approved 妹妹 assets instead of regenerating her iden
 ## Choose the requested mode
 
 - **Codex pet:** install `assets/pet/pet.json` and `assets/pet/spritesheet.webp` into the active Codex pet directory.
-- **macOS desktop companion:** install or rebuild the transparent menu-bar app that matches the current Codex pet width, uses relaxed animation timing, can be lifted upward by the scruff, retreats into a screen edge after five ignored minutes when parked in a corner, and tells occasional offline cold jokes.
+- **macOS desktop companion:** install or rebuild the transparent menu-bar app that matches the current Codex pet width, uses relaxed animation timing, can be lifted upward by the scruff, retreats into a screen edge after five ignored minutes when parked in a corner, jumps back to that corner on hover, and tells occasional offline cold jokes.
 - **Inspect or restore:** verify the packaged files first, then repair only the missing or invalid layer.
 - **Change the artwork or animation:** use `$hatch-pet` when available; preserve the 8×11 v2 contract and re-run its full QA before replacing bundled assets.
 

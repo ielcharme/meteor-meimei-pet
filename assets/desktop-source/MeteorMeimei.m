@@ -84,6 +84,8 @@ static NSArray<NSString *> *MMColdJokes(void) {
 @property(nonatomic, copy) void (^onClick)(void);
 @property(nonatomic, copy) void (^onDrag)(NSPoint point);
 @property(nonatomic, copy) void (^onDragEnd)(void);
+@property(nonatomic, copy) void (^onHover)(void);
+@property(nonatomic, strong) NSTrackingArea *hoverTrackingArea;
 @property(nonatomic) BOOL didDrag;
 @end
 
@@ -101,6 +103,21 @@ static NSArray<NSString *> *MMColdJokes(void) {
 
 - (BOOL)acceptsFirstResponder { return YES; }
 - (BOOL)acceptsFirstMouse:(NSEvent *)event { return YES; }
+
+- (void)updateTrackingAreas {
+    [super updateTrackingAreas];
+    if (self.hoverTrackingArea) [self removeTrackingArea:self.hoverTrackingArea];
+    self.hoverTrackingArea = [[NSTrackingArea alloc]
+        initWithRect:NSZeroRect
+             options:NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect
+               owner:self
+            userInfo:nil];
+    [self addTrackingArea:self.hoverTrackingArea];
+}
+
+- (void)mouseEntered:(NSEvent *)event {
+    if (self.onHover) self.onHover();
+}
 
 - (void)setRow:(NSInteger)row {
     _row = row;
@@ -234,8 +251,10 @@ static NSArray<NSString *> *MMColdJokes(void) {
 @property(nonatomic) CGFloat baseY;
 @property(nonatomic) NSSize petSize;
 @property(nonatomic) CGFloat dropVelocity;
+@property(nonatomic) CGFloat edgeEmergenceStartX;
 @property(nonatomic) NSInteger parkedEdge;
 @property(nonatomic) NSTimeInterval lastInteractionAt;
+@property(nonatomic) NSTimeInterval edgeEmergenceElapsed;
 @property(nonatomic) BOOL paused;
 @property(nonatomic) BOOL petHidden;
 @property(nonatomic) BOOL dragging;
@@ -243,6 +262,7 @@ static NSArray<NSString *> *MMColdJokes(void) {
 @property(nonatomic) BOOL dropping;
 @property(nonatomic) BOOL edgeRetreating;
 @property(nonatomic) BOOL edgeHidden;
+@property(nonatomic) BOOL edgeEmerging;
 @property(nonatomic, copy) void (^onPauseChanged)(BOOL paused);
 @property(nonatomic, copy) void (^onVisibilityChanged)(BOOL hidden);
 - (instancetype)initWithAtlas:(NSImage *)atlas;
@@ -251,6 +271,7 @@ static NSArray<NSString *> *MMColdJokes(void) {
 - (void)playNow;
 - (void)bringToMouse;
 - (void)tellJokeNow;
+- (void)hoverReveal;
 - (void)dragFinished;
 @end
 
@@ -263,6 +284,8 @@ static const NSTimeInterval MMCornerHideDelay = 5.0 * 60.0;
 static const CGFloat MMWalkSpeed = 42.0;
 static const CGFloat MMEdgeHideSpeed = 30.0;
 static const CGFloat MMEdgePeekWidth = 24.0;
+static const CGFloat MMEdgeEmergenceHopHeight = 28.0;
+static const NSTimeInterval MMEdgeEmergenceDuration = 0.82;
 static const double MMJumpDuration = 1.8;
 
 - (instancetype)initWithAtlas:(NSImage *)atlas {
@@ -304,6 +327,7 @@ static const double MMJumpDuration = 1.8;
         _petView.onClick = ^{ [weakSelf playNow]; };
         _petView.onDrag = ^(NSPoint point) { [weakSelf dragTo:point]; };
         _petView.onDragEnd = ^{ [weakSelf dragFinished]; };
+        _petView.onHover = ^{ [weakSelf hoverReveal]; };
 
         [self placeNearMouse];
         [_panel orderFrontRegardless];
@@ -370,9 +394,25 @@ static const double MMJumpDuration = 1.8;
 }
 
 - (void)tellJokeNow {
-    if (self.petHidden || self.edgeHidden || self.edgeRetreating) [self bringToMouse];
+    if (self.petHidden || self.edgeHidden || self.edgeRetreating || self.edgeEmerging) [self bringToMouse];
     [self noteInteraction];
     [self showRandomJoke];
+}
+
+- (void)hoverReveal {
+    if (self.petHidden || (!self.edgeHidden && !self.edgeRetreating)) return;
+    [self noteInteraction];
+    self.paused = NO;
+    self.edgeEmerging = YES;
+    self.edgeHidden = NO;
+    self.edgeRetreating = NO;
+    self.edgeEmergenceElapsed = 0;
+    self.edgeEmergenceStartX = self.panel.frame.origin.x;
+    self.animationElapsed = 0;
+    self.petView.row = 4;
+    self.petView.column = 0;
+    self.petView.flippedHorizontally = NO;
+    if (self.onPauseChanged) self.onPauseChanged(NO);
 }
 
 - (void)tick:(NSTimer *)timer {
@@ -386,6 +426,12 @@ static const double MMJumpDuration = 1.8;
 
     if (self.dropping) {
         [self updateDrop:delta];
+        [self updateBubblePosition];
+        return;
+    }
+
+    if (self.edgeEmerging) {
+        [self updateEdgeEmergence:delta];
         [self updateBubblePosition];
         return;
     }
@@ -615,7 +661,7 @@ static const double MMJumpDuration = 1.8;
 }
 
 - (void)beginEdgeRetreat {
-    if (self.parkedEdge == 0 || self.edgeRetreating || self.edgeHidden) return;
+    if (self.parkedEdge == 0 || self.edgeRetreating || self.edgeHidden || self.edgeEmerging) return;
     self.edgeRetreating = YES;
     [self enterMode:self.parkedEdge < 0 ? MMPetModeWalkLeft : MMPetModeWalkRight duration:DBL_MAX];
 }
@@ -640,10 +686,39 @@ static const double MMJumpDuration = 1.8;
     }
 }
 
-- (void)clearEdgeStateAndReveal {
-    if (self.parkedEdge == 0 && !self.edgeRetreating && !self.edgeHidden) return;
+- (void)updateEdgeEmergence:(NSTimeInterval)delta {
     NSScreen *screen = [self currentScreen];
-    if (screen && (self.edgeRetreating || self.edgeHidden)) {
+    if (!screen || self.parkedEdge == 0) {
+        self.edgeEmerging = NO;
+        return;
+    }
+    self.edgeEmergenceElapsed += delta;
+    double progress = MIN(1.0, self.edgeEmergenceElapsed / MMEdgeEmergenceDuration);
+    double eased = 1.0 - pow(1.0 - progress, 3.0);
+    CGFloat targetX = self.parkedEdge < 0
+        ? NSMinX(screen.visibleFrame)
+        : NSMaxX(screen.visibleFrame) - self.petSize.width;
+    CGFloat x = self.edgeEmergenceStartX + (targetX - self.edgeEmergenceStartX) * eased;
+    CGFloat y = self.baseY + sin(progress * M_PI) * MMEdgeEmergenceHopHeight;
+    x = round(x * screen.backingScaleFactor) / screen.backingScaleFactor;
+    y = round(y * screen.backingScaleFactor) / screen.backingScaleFactor;
+    self.petView.row = 4;
+    self.petView.column = MIN(4, (NSInteger)floor(progress * 5.0));
+    self.petView.flippedHorizontally = NO;
+    [self.panel setFrameOrigin:NSMakePoint(x, y)];
+
+    if (progress >= 1.0) {
+        self.edgeEmerging = NO;
+        [self.panel setFrameOrigin:NSMakePoint(targetX, self.baseY)];
+        [self noteInteraction];
+        [self enterMode:MMPetModeIdle duration:DBL_MAX];
+    }
+}
+
+- (void)clearEdgeStateAndReveal {
+    if (self.parkedEdge == 0 && !self.edgeRetreating && !self.edgeHidden && !self.edgeEmerging) return;
+    NSScreen *screen = [self currentScreen];
+    if (screen && (self.edgeRetreating || self.edgeHidden || self.edgeEmerging)) {
         CGFloat x = self.parkedEdge < 0
             ? NSMinX(screen.visibleFrame)
             : NSMaxX(screen.visibleFrame) - self.petSize.width;
@@ -653,6 +728,7 @@ static const double MMJumpDuration = 1.8;
     self.parkedEdge = 0;
     self.edgeRetreating = NO;
     self.edgeHidden = NO;
+    self.edgeEmerging = NO;
 }
 
 - (void)noteInteraction {
@@ -787,7 +863,7 @@ int main(int argc, const char *argv[]) {
             return 0;
         }
         if ([NSProcessInfo.processInfo.arguments containsObject:@"--print-behavior-config"]) {
-            printf("walk_fps=5.2 walk_speed=42 idle_fps=2.0 play_fps=2.1 corner_hide_seconds=300 left_source=running-right-mirrored\n");
+            printf("walk_fps=5.2 walk_speed=42 idle_fps=2.0 play_fps=2.1 corner_hide_seconds=300 hover_reveal=jump-to-corner left_source=running-right-mirrored\n");
             return 0;
         }
         NSApplication *app = NSApplication.sharedApplication;

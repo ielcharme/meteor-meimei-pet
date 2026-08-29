@@ -30,6 +30,7 @@ Behavior:
 - renders running-left from the approved running-right row with a per-frame horizontal mirror that preserves frame order, plus backing-pixel-aligned window movement
 - upward dragging anchors the pet near the scruff with airborne jump poses; release applies a gravity drop back to the screen baseline
 - when manually parked at the left or right bottom edge, five minutes without direct pet interaction triggers a slow retreat that leaves a clickable `24 pt` peek
+- the peeking area has an always-active hover tracker; mouse entry triggers a `0.82 s` eased hop back to the same corner and resets the five-minute timer without starting a walk
 - shows a bundled offline cold joke every 40–90 minutes for about 8 seconds while visible and unpaused
 - click to play; drag to reposition; menu-bar controls to recall, play, tell a joke, pause, hide, or quit
 - no network, telemetry, conversations, credentials, login-item persistence, or protected-device access
