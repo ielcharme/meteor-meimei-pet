@@ -15,6 +15,7 @@
 3. 让你可以直接把妹妹放到 Mac 桌面，她会自己走动，也可以被点击、拖动和召回。
 4. 让桌面妹妹自动匹配 Codex 当前宠物宽度，并偶尔用本地气泡讲一个冷笑话。
 5. 在你打字或看全屏视频时自动隐身，不挡住正在工作的区域，也不打扰观影。
+6. 在确认你正在使用电脑工作时，每小时由妹妹亲自在桌面气泡里提醒活动和喝水。
 
 妹妹是一只陨石纹边境牧羊犬：石墨黑、银灰和白色毛发，宇宙蓝眼睛，戴铜色名牌。当前版本已经处理拖动后的方向问题：拖动时使用完整待机帧，松手后挥爪，再继续散步，不会把向左跑的头部错误叠到身体上。
 
@@ -59,6 +60,7 @@ open "$HOME/Applications/妹妹.app"
 - 把鼠标移到露在边框外的妹妹身上：她会自动跳出来，并继续停留在原来的桌角
 - 点击妹妹或选择菜单栏「叫妹妹过来」：也可以让她重新出来
 - 每隔约 40–90 分钟：妹妹随机讲一个冷笑话，气泡显示约 8 秒
+- 每满 1 小时且最近 5 分钟仍有操作：妹妹用桌面气泡提醒活动 2–5 分钟并喝水；气泡 10 秒后自动消失
 - 开始打字时：妹妹会自动隐身；停止输入约 3 秒后，她会回到原来的位置
 - 当前 App 进入全屏，或前台是 TV、QuickTime Player、VLC、IINA 等播放器时：妹妹会自动隐身
 - 浏览器窗口内看剧时：点击菜单栏爪印并选择「开启观影模式」；看完后选择「退出观影模式」
@@ -67,6 +69,8 @@ open "$HOME/Applications/妹妹.app"
 桌面妹妹启动时读取 `~/.codex/config.toml` 里的 `avatar-overlay-mascot-width-px`，让她与 Codex 当前显示宽度保持 1:1；当前这台 Mac 的设置是 `97 px`。如果没有找到该设置，则默认使用 `97 px`。动画高度会按原始 `192:208` 单元格比例自动计算，不会拉伸妹妹。
 
 工作区保护完全在本机判断：App 只读取“距离上一次按键过去了多久”、前台 App 的名称/标识和窗口几何尺寸。它不会记录按键内容，不会读取屏幕画面、浏览器页面或 Codex 对话，也不需要辅助功能或屏幕录制权限。由于不查看页面内容，浏览器里的非全屏视频需要手动开启观影模式。
+
+喝水和活动提醒也完全由桌面 App 在本机计时，不会发到 Codex 聊天。到点时如果电脑已经闲置、妹妹被手动隐藏/暂停，或正在全屏和观影模式中，本轮提醒会跳过；如果你恰好正在打字，则等停止输入约 3 秒后再出现，避免挡住输入区域。提醒气泡显示 10 秒后自动关闭；如果妹妹原本藏在边框里，她提醒完还会回到边框。
 
 向左散步由已确认的向右步态逐帧镜像，保持同一帧顺序，并将速度从原先的 9 fps 降到 5.2 fps；窗口位置也会对齐屏幕像素，减少小尺寸显示时的顿挫。待机、挥爪、跳跃、卖萌和检查动作也全部减速，妹妹现在会休息得更久，不再一直忙个不停。
 
@@ -174,6 +178,10 @@ Skill 是给 Codex 使用的操作说明和资源包，不是正在运行的桌�
 
 你按键时，妹妹会立即自动隐身；停止输入约 3 秒后，她才回到原位。前台窗口全屏或使用常见本地播放器时，她也会保持隐藏。浏览器里的窗口化视频无法在不读取页面内容的前提下可靠识别，因此请从菜单栏爪印开启「观影模式」，看完再关闭。
 
+### 喝水和活动提醒会一直留在桌面吗？
+
+不会。妹妹只在确认最近仍有电脑操作时，每小时用桌面气泡提醒一次；气泡 10 秒后自动消失。提醒不会发到 Codex 聊天，也不会在电脑闲置或观影时打扰你。
+
 ### 拖动妹妹后，她为什么回到屏幕底部？
 
 妹妹平时的活动区域在当前屏幕底部。向上拖动时可以把她拎起来，松手后她会自然落回底部；拖到左右角落后，她会停在那里，并在 5 分钟没有互动后躲进边框。把鼠标放到露出的部分上，她会用跳跃姿势回到桌角，并从那一刻重新计算 5 分钟。
@@ -240,4 +248,4 @@ meteor-meimei-pet/
 
 ## English summary
 
-Meteor Meimei is Lucie's reusable Codex v2 pet package and a separate local-only macOS desktop companion. The desktop app matches the current Codex pet width, roams along the bottom of the screen, reacts to clicks and dragging, and occasionally shows an offline cold joke. It automatically hides while the user is typing, while a foreground app is full-screen, or while a known media player is active; a manual cinema mode covers windowed browser video without inspecting page or screen content.
+Meteor Meimei is Lucie's reusable Codex v2 pet package and a separate local-only macOS desktop companion. The desktop app matches the current Codex pet width, roams along the bottom of the screen, reacts to clicks and dragging, and occasionally shows an offline cold joke. It automatically hides while the user is typing, while a foreground app is full-screen, or while a known media player is active. During active computer use, an hourly local wellness bubble reminds the user to move and drink water, then dismisses itself after ten seconds.

@@ -32,6 +32,8 @@ Behavior:
 - when manually parked at the left or right bottom edge, five minutes without direct pet interaction triggers a slow retreat that leaves a clickable `24 pt` peek
 - the peeking area has an always-active hover tracker; mouse entry triggers a `0.82 s` eased hop back to the same corner and resets the five-minute timer without starting a walk
 - shows a bundled offline cold joke every 40–90 minutes for about 8 seconds while visible and unpaused
+- once per hour, checks whether local input occurred during the previous five minutes; when actively working and not hidden, paused, full-screen, or in cinema mode, shows a movement-and-water speech bubble for `10 s` and then dismisses it automatically
+- a due reminder waits for the three-second typing quiet period before appearing; when it temporarily reveals an edge-hidden pet, the pet returns to that edge after the bubble closes
 - hides during keyboard activity and returns to the same state and location after about `3 s` without a key event
 - hides while the foreground app has a full-screen window or is a known media player; manual menu-bar cinema mode covers windowed browser playback without inspecting its content
 - click to play; drag to reposition; menu-bar controls to recall, play, tell a joke, toggle cinema mode, pause, hide, or quit

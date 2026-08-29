@@ -10,7 +10,7 @@ Use the bundled, already-approved 妹妹 assets instead of regenerating her iden
 ## Choose the requested mode
 
 - **Codex pet:** install `assets/pet/pet.json` and `assets/pet/spritesheet.webp` into the active Codex pet directory.
-- **macOS desktop companion:** install or rebuild the transparent menu-bar app that matches the current Codex pet width, uses relaxed animation timing, can be lifted upward by the scruff, retreats into a screen edge after five ignored minutes when parked in a corner, jumps back to that corner on hover, tells occasional offline cold jokes, and hides during typing, full-screen work, or video playback.
+- **macOS desktop companion:** install or rebuild the transparent menu-bar app that matches the current Codex pet width, uses relaxed animation timing, can be lifted upward by the scruff, retreats into a screen edge after five ignored minutes when parked in a corner, jumps back to that corner on hover, tells occasional offline cold jokes, hides during typing/full-screen/video playback, and shows a self-dismissing hourly movement-and-water bubble during active work.
 - **Inspect or restore:** verify the packaged files first, then repair only the missing or invalid layer.
 - **Change the artwork or animation:** use `$hatch-pet` when available; preserve the 8×11 v2 contract and re-run its full QA before replacing bundled assets.
 
@@ -33,6 +33,8 @@ The bundled app is for Apple Silicon macOS. Prefer the prebuilt app for ordinary
 For directional walking, render leftward motion as a frame-order-preserving horizontal mirror of the approved rightward row instead of using a visibly unstable left row. Preserve the calmer timing constants and the deterministic `--print-behavior-config` verification hook when rebuilding.
 
 Preserve focus protection when rebuilding: hide while keyboard activity is recent, while a foreground window is full-screen, while a known media player is active, or while manual cinema mode is enabled. Restore the same pet state and location after protection ends. Because browser page content is intentionally not inspected, use the menu-bar cinema toggle for windowed browser video.
+
+Preserve the local wellness reminder when rebuilding: check once per hour, deliver only when input activity occurred within the previous five minutes, defer briefly until recent typing stops, skip the run when hidden, paused, idle, full-screen, or in cinema mode, and automatically dismiss the speech bubble after ten seconds. If the reminder temporarily reveals a pet hidden at the screen edge, return it to that edge after dismissal. Do not implement this reminder through chat or a network service.
 
 Launch the app only when the user asks. Use `open` on the installed app; do not add login-item persistence, Accessibility access, screen recording, microphone, camera, or network behavior unless separately requested and approved.
 

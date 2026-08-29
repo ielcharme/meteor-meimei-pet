@@ -77,6 +77,20 @@ static NSArray<NSString *> *MMColdJokes(void) {
     return jokes;
 }
 
+static NSArray<NSString *> *MMWellnessMessages(void) {
+    static NSArray<NSString *> *messages;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        messages = @[
+            @"工作一小时啦～陪妹妹起来活动 2–5 分钟，再喝几口水吧 🐾",
+            @"妹妹来报时：站起来伸伸腰、走一走，也别忘了喝水呀。",
+            @"先暂停一下下～活动肩颈 2–5 分钟，再补几口水吧。",
+            @"汪～妹妹提醒你休息一下：起来动一动，顺便喝点水。"
+        ];
+    });
+    return messages;
+}
+
 @interface MMPetView : NSView
 @property(nonatomic, strong) NSImage *atlas;
 @property(nonatomic) NSInteger row;
@@ -244,6 +258,7 @@ static NSArray<NSString *> *MMColdJokes(void) {
 @property(nonatomic, strong) NSTimer *timer;
 @property(nonatomic) NSTimeInterval lastTick;
 @property(nonatomic) NSTimeInterval nextJokeAt;
+@property(nonatomic) NSTimeInterval nextWellnessAt;
 @property(nonatomic) NSTimeInterval bubbleHideAt;
 @property(nonatomic) MMPetMode mode;
 @property(nonatomic) double animationElapsed;
@@ -257,6 +272,7 @@ static NSArray<NSString *> *MMColdJokes(void) {
 @property(nonatomic) NSTimeInterval lastInteractionAt;
 @property(nonatomic) NSTimeInterval edgeEmergenceElapsed;
 @property(nonatomic) NSTimeInterval nextFocusProtectionCheckAt;
+@property(nonatomic) NSInteger wellnessReturnEdge;
 @property(nonatomic) BOOL paused;
 @property(nonatomic) BOOL petHidden;
 @property(nonatomic) BOOL focusProtected;
@@ -267,6 +283,7 @@ static NSArray<NSString *> *MMColdJokes(void) {
 @property(nonatomic) BOOL edgeRetreating;
 @property(nonatomic) BOOL edgeHidden;
 @property(nonatomic) BOOL edgeEmerging;
+@property(nonatomic) BOOL wellnessReminderActive;
 @property(nonatomic, copy) void (^onPauseChanged)(BOOL paused);
 @property(nonatomic, copy) void (^onVisibilityChanged)(BOOL hidden);
 @property(nonatomic, copy) void (^onCinemaModeChanged)(BOOL enabled);
@@ -286,6 +303,9 @@ static NSArray<NSString *> *MMColdJokes(void) {
 static const CGFloat MMBubbleWidth = 236;
 static const CGFloat MMBubbleHeight = 78;
 static const NSTimeInterval MMJokeDisplayDuration = 8.0;
+static const NSTimeInterval MMWellnessInterval = 60.0 * 60.0;
+static const NSTimeInterval MMWellnessDisplayDuration = 10.0;
+static const NSTimeInterval MMWorkActivityWindow = 5.0 * 60.0;
 static const NSTimeInterval MMCornerHideDelay = 5.0 * 60.0;
 static const CGFloat MMWalkSpeed = 42.0;
 static const CGFloat MMEdgeHideSpeed = 30.0;
@@ -343,6 +363,7 @@ static const double MMJumpDuration = 1.8;
         _lastTick = NSProcessInfo.processInfo.systemUptime;
         _lastInteractionAt = _lastTick;
         [self scheduleNextJokeFrom:_lastTick];
+        [self scheduleNextWellnessFrom:_lastTick];
         _timer = [NSTimer timerWithTimeInterval:1.0 / 30.0
                                         target:self
                                       selector:@selector(tick:)
@@ -436,8 +457,9 @@ static const double MMJumpDuration = 1.8;
     self.lastTick = now;
     [self updateFocusProtection:now];
     if (self.bubblePanel.visible && now >= self.bubbleHideAt) [self hideBubble];
+    [self maybeShowWellnessReminder:now];
     if (self.paused || self.petHidden || self.focusProtected) return;
-    if (now >= self.nextJokeAt) [self showRandomJoke];
+    if (!self.bubblePanel.visible && now >= self.nextJokeAt) [self showRandomJoke];
     if (self.dragging) return;
 
     if (self.dropping) {
@@ -836,19 +858,76 @@ static const double MMJumpDuration = 1.8;
     self.nextJokeAt = now + MMRandom(40.0 * 60.0, 90.0 * 60.0);
 }
 
+- (void)scheduleNextWellnessFrom:(NSTimeInterval)now {
+    self.nextWellnessAt = now + MMWellnessInterval;
+}
+
+- (void)maybeShowWellnessReminder:(NSTimeInterval)now {
+    if (now < self.nextWellnessAt || self.wellnessReminderActive) return;
+    if (self.petHidden || self.paused) {
+        [self scheduleNextWellnessFrom:now];
+        return;
+    }
+
+    NSTimeInterval secondsSinceInput = CGEventSourceSecondsSinceLastEventType(
+        kCGEventSourceStateCombinedSessionState,
+        kCGAnyInputEventType
+    );
+    BOOL activelyWorking = isfinite(secondsSinceInput) && secondsSinceInput >= 0 && secondsSinceInput < MMWorkActivityWindow;
+    if (!activelyWorking || self.cinemaMode || [self frontmostAppNeedsQuietScreen]) {
+        [self scheduleNextWellnessFrom:now];
+        return;
+    }
+
+    // Recent typing temporarily hides the pet. Keep this reminder pending until
+    // the user has been quiet for three seconds, so the bubble never covers typing.
+    if (self.focusProtected || self.dragging || self.bubblePanel.visible) return;
+    [self showWellnessReminderAt:now];
+}
+
+- (void)showWellnessReminderAt:(NSTimeInterval)now {
+    self.wellnessReminderActive = YES;
+    self.wellnessReturnEdge = (self.edgeHidden || self.edgeRetreating) ? self.parkedEdge : 0;
+    if (self.wellnessReturnEdge != 0) [self clearEdgeStateAndReveal];
+    [self noteInteraction];
+    [self.panel orderFrontRegardless];
+    [self enterMode:MMPetModeWave duration:2.4];
+    NSArray<NSString *> *messages = MMWellnessMessages();
+    NSString *message = messages[arc4random_uniform((uint32_t)messages.count)];
+    [self showBubbleMessage:message duration:MMWellnessDisplayDuration];
+    [self scheduleNextWellnessFrom:now];
+}
+
+- (void)finishWellnessReminder {
+    if (!self.wellnessReminderActive) return;
+    self.wellnessReminderActive = NO;
+    NSInteger returnEdge = self.wellnessReturnEdge;
+    self.wellnessReturnEdge = 0;
+    if (returnEdge == 0 || self.petHidden) return;
+    self.parkedEdge = returnEdge;
+    [self beginEdgeRetreat];
+}
+
 - (void)showRandomJoke {
     NSArray<NSString *> *jokes = MMColdJokes();
-    self.bubbleView.message = jokes[arc4random_uniform((uint32_t)jokes.count)];
+    NSString *message = jokes[arc4random_uniform((uint32_t)jokes.count)];
+    [self showBubbleMessage:message duration:MMJokeDisplayDuration];
+    NSTimeInterval now = NSProcessInfo.processInfo.systemUptime;
+    [self scheduleNextJokeFrom:now];
+}
+
+- (void)showBubbleMessage:(NSString *)message duration:(NSTimeInterval)duration {
+    self.bubbleView.message = message;
     [self updateBubblePosition];
     [self.bubblePanel orderFrontRegardless];
     NSTimeInterval now = NSProcessInfo.processInfo.systemUptime;
-    self.bubbleHideAt = now + MMJokeDisplayDuration;
-    [self scheduleNextJokeFrom:now];
+    self.bubbleHideAt = now + duration;
 }
 
 - (void)hideBubble {
     [self.bubblePanel orderOut:nil];
     self.bubbleHideAt = 0;
+    [self finishWellnessReminder];
 }
 
 - (void)updateBubblePosition {
@@ -956,7 +1035,7 @@ int main(int argc, const char *argv[]) {
             return 0;
         }
         if ([NSProcessInfo.processInfo.arguments containsObject:@"--print-behavior-config"]) {
-            printf("walk_fps=5.2 walk_speed=42 idle_fps=2.0 play_fps=2.1 corner_hide_seconds=300 hover_reveal=jump-to-corner focus_protection=typing-fullscreen-media cinema_mode=manual left_source=running-right-mirrored\n");
+            printf("walk_fps=5.2 walk_speed=42 idle_fps=2.0 play_fps=2.1 corner_hide_seconds=300 hover_reveal=jump-to-corner focus_protection=typing-fullscreen-media cinema_mode=manual wellness_interval_seconds=3600 wellness_display_seconds=10 work_active_window_seconds=300 left_source=running-right-mirrored\n");
             return 0;
         }
         NSApplication *app = NSApplication.sharedApplication;
