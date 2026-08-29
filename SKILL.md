@@ -10,7 +10,7 @@ Use the bundled, already-approved 妹妹 assets instead of regenerating her iden
 ## Choose the requested mode
 
 - **Codex pet:** install `assets/pet/pet.json` and `assets/pet/spritesheet.webp` into the active Codex pet directory.
-- **macOS desktop companion:** install or rebuild the transparent menu-bar app that matches the current Codex pet width, uses relaxed animation timing, can be lifted upward by the scruff, retreats into a screen edge after five ignored minutes when parked in a corner, jumps back to that corner on hover, and tells occasional offline cold jokes.
+- **macOS desktop companion:** install or rebuild the transparent menu-bar app that matches the current Codex pet width, uses relaxed animation timing, can be lifted upward by the scruff, retreats into a screen edge after five ignored minutes when parked in a corner, jumps back to that corner on hover, tells occasional offline cold jokes, and hides during typing, full-screen work, or video playback.
 - **Inspect or restore:** verify the packaged files first, then repair only the missing or invalid layer.
 - **Change the artwork or animation:** use `$hatch-pet` when available; preserve the 8×11 v2 contract and re-run its full QA before replacing bundled assets.
 
@@ -28,9 +28,11 @@ The installer refuses to overwrite an existing installation unless `--replace` i
 
 ## Desktop companion
 
-The bundled app is for Apple Silicon macOS. Prefer the prebuilt app for ordinary installation. Use `scripts/build_desktop_app.sh` when the user asks to rebuild it, when the binary is missing, or when source changes are required. The app may read only `avatar-overlay-mascot-width-px` from `~/.codex/config.toml`; it must not read conversations or other Codex state.
+The bundled app is for Apple Silicon macOS. Prefer the prebuilt app for ordinary installation. Use `scripts/build_desktop_app.sh` when the user asks to rebuild it, when the binary is missing, or when source changes are required. The app may read only `avatar-overlay-mascot-width-px` from `~/.codex/config.toml`, anonymous seconds-since-last-key-event, the frontmost app identity, and on-screen window geometry. It must never capture key values, screen pixels, browser content, conversations, or other Codex state.
 
 For directional walking, render leftward motion as a frame-order-preserving horizontal mirror of the approved rightward row instead of using a visibly unstable left row. Preserve the calmer timing constants and the deterministic `--print-behavior-config` verification hook when rebuilding.
+
+Preserve focus protection when rebuilding: hide while keyboard activity is recent, while a foreground window is full-screen, while a known media player is active, or while manual cinema mode is enabled. Restore the same pet state and location after protection ends. Because browser page content is intentionally not inspected, use the menu-bar cinema toggle for windowed browser video.
 
 Launch the app only when the user asks. Use `open` on the installed app; do not add login-item persistence, Accessibility access, screen recording, microphone, camera, or network behavior unless separately requested and approved.
 
@@ -40,7 +42,7 @@ Launch the app only when the user asks. Use `open` on the installed app; do not 
 - Display name: `妹妹`
 - `spriteVersionNumber`: `2`
 - Atlas: transparent WebP, `1536×2288`, 8 columns × 11 rows, `192×208` cells
-- Desktop app: local-only; no network, credentials, telemetry, or privileged permissions
+- Desktop app: local-only; no network, credentials, telemetry, key-content capture, screen capture, or privileged permissions
 - Preserve the meteorite black/graphite/silver coat, white blaze/chest/paws/tail tip, cosmic-blue eyes, and centered copper tag.
 
 Do not silently replace the verified atlas with generated art, publish assets, or alter another installed pet.

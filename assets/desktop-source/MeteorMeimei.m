@@ -1,4 +1,5 @@
 #import <Cocoa/Cocoa.h>
+#import <ApplicationServices/ApplicationServices.h>
 #import <math.h>
 
 typedef NS_ENUM(NSInteger, MMPetMode) {
@@ -255,8 +256,11 @@ static NSArray<NSString *> *MMColdJokes(void) {
 @property(nonatomic) NSInteger parkedEdge;
 @property(nonatomic) NSTimeInterval lastInteractionAt;
 @property(nonatomic) NSTimeInterval edgeEmergenceElapsed;
+@property(nonatomic) NSTimeInterval nextFocusProtectionCheckAt;
 @property(nonatomic) BOOL paused;
 @property(nonatomic) BOOL petHidden;
+@property(nonatomic) BOOL focusProtected;
+@property(nonatomic) BOOL cinemaMode;
 @property(nonatomic) BOOL dragging;
 @property(nonatomic) BOOL liftedDuringDrag;
 @property(nonatomic) BOOL dropping;
@@ -265,6 +269,7 @@ static NSArray<NSString *> *MMColdJokes(void) {
 @property(nonatomic) BOOL edgeEmerging;
 @property(nonatomic, copy) void (^onPauseChanged)(BOOL paused);
 @property(nonatomic, copy) void (^onVisibilityChanged)(BOOL hidden);
+@property(nonatomic, copy) void (^onCinemaModeChanged)(BOOL enabled);
 - (instancetype)initWithAtlas:(NSImage *)atlas;
 - (void)togglePause;
 - (void)toggleVisibility;
@@ -272,6 +277,7 @@ static NSArray<NSString *> *MMColdJokes(void) {
 - (void)bringToMouse;
 - (void)tellJokeNow;
 - (void)hoverReveal;
+- (void)toggleCinemaMode;
 - (void)dragFinished;
 @end
 
@@ -286,6 +292,8 @@ static const CGFloat MMEdgeHideSpeed = 30.0;
 static const CGFloat MMEdgePeekWidth = 24.0;
 static const CGFloat MMEdgeEmergenceHopHeight = 28.0;
 static const NSTimeInterval MMEdgeEmergenceDuration = 0.82;
+static const NSTimeInterval MMFocusProtectionInterval = 0.4;
+static const NSTimeInterval MMTypingQuietPeriod = 3.0;
 static const double MMJumpDuration = 1.8;
 
 - (instancetype)initWithAtlas:(NSImage *)atlas {
@@ -365,7 +373,7 @@ static const double MMJumpDuration = 1.8;
     } else {
         [self clearEdgeStateAndReveal];
         [self placeNearMouse];
-        [self.panel orderFrontRegardless];
+        if (!self.focusProtected) [self.panel orderFrontRegardless];
         [self enterMode:MMPetModeWave duration:2.4];
     }
     if (self.onVisibilityChanged) self.onVisibilityChanged(self.petHidden);
@@ -389,14 +397,21 @@ static const double MMJumpDuration = 1.8;
     [self clearEdgeStateAndReveal];
     if (self.onVisibilityChanged) self.onVisibilityChanged(NO);
     [self placeNearMouse];
-    [self.panel orderFrontRegardless];
+    if (!self.focusProtected) [self.panel orderFrontRegardless];
     [self enterMode:MMPetModeWave duration:2.4];
 }
 
 - (void)tellJokeNow {
     if (self.petHidden || self.edgeHidden || self.edgeRetreating || self.edgeEmerging) [self bringToMouse];
     [self noteInteraction];
-    [self showRandomJoke];
+    if (!self.focusProtected) [self showRandomJoke];
+}
+
+- (void)toggleCinemaMode {
+    self.cinemaMode = !self.cinemaMode;
+    self.nextFocusProtectionCheckAt = 0;
+    [self updateFocusProtection:NSProcessInfo.processInfo.systemUptime];
+    if (self.onCinemaModeChanged) self.onCinemaModeChanged(self.cinemaMode);
 }
 
 - (void)hoverReveal {
@@ -419,8 +434,9 @@ static const double MMJumpDuration = 1.8;
     NSTimeInterval now = NSProcessInfo.processInfo.systemUptime;
     NSTimeInterval delta = MIN(now - self.lastTick, 0.1);
     self.lastTick = now;
+    [self updateFocusProtection:now];
     if (self.bubblePanel.visible && now >= self.bubbleHideAt) [self hideBubble];
-    if (self.paused || self.petHidden) return;
+    if (self.paused || self.petHidden || self.focusProtected) return;
     if (now >= self.nextJokeAt) [self showRandomJoke];
     if (self.dragging) return;
 
@@ -735,6 +751,75 @@ static const double MMJumpDuration = 1.8;
     self.lastInteractionAt = NSProcessInfo.processInfo.systemUptime;
 }
 
+- (void)updateFocusProtection:(NSTimeInterval)now {
+    if (now < self.nextFocusProtectionCheckAt) return;
+    self.nextFocusProtectionCheckAt = now + MMFocusProtectionInterval;
+
+    NSTimeInterval secondsSinceKey = CGEventSourceSecondsSinceLastEventType(
+        kCGEventSourceStateCombinedSessionState,
+        kCGEventKeyDown
+    );
+    BOOL typing = isfinite(secondsSinceKey) && secondsSinceKey >= 0 && secondsSinceKey < MMTypingQuietPeriod;
+    BOOL shouldProtect = self.cinemaMode || typing || [self frontmostAppNeedsQuietScreen];
+    if (shouldProtect == self.focusProtected) return;
+
+    self.focusProtected = shouldProtect;
+    if (shouldProtect) {
+        [self.panel orderOut:nil];
+        [self hideBubble];
+    } else if (!self.petHidden) {
+        [self.panel orderFrontRegardless];
+    }
+}
+
+- (BOOL)frontmostAppNeedsQuietScreen {
+    NSRunningApplication *frontmost = NSWorkspace.sharedWorkspace.frontmostApplication;
+    if (!frontmost || frontmost.processIdentifier == NSProcessInfo.processInfo.processIdentifier) return NO;
+
+    static NSSet<NSString *> *mediaBundleIDs;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        mediaBundleIDs = [NSSet setWithArray:@[
+            @"com.apple.TV",
+            @"com.apple.QuickTimePlayerX",
+            @"org.videolan.vlc",
+            @"com.colliderli.iina",
+            @"com.colliderli.iina-plus"
+        ]];
+    });
+    NSString *bundleID = frontmost.bundleIdentifier ?: @"";
+    if ([mediaBundleIDs containsObject:bundleID]) return YES;
+
+    NSString *name = frontmost.localizedName.lowercaseString ?: @"";
+    NSArray<NSString *> *mediaNames = @[@"netflix", @"disney", @"quicktime", @"vlc", @"iina"];
+    for (NSString *mediaName in mediaNames) {
+        if ([name containsString:mediaName]) return YES;
+    }
+    return [self applicationHasFullscreenWindow:frontmost.processIdentifier];
+}
+
+- (BOOL)applicationHasFullscreenWindow:(pid_t)processIdentifier {
+    CFArrayRef copied = CGWindowListCopyWindowInfo(
+        kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements,
+        kCGNullWindowID
+    );
+    if (!copied) return NO;
+    NSArray<NSDictionary *> *windows = CFBridgingRelease(copied);
+    for (NSDictionary *window in windows) {
+        if ([window[(id)kCGWindowOwnerPID] intValue] != processIdentifier) continue;
+        if ([window[(id)kCGWindowLayer] integerValue] != 0) continue;
+        CGRect bounds = CGRectZero;
+        if (!CGRectMakeWithDictionaryRepresentation((__bridge CFDictionaryRef)window[(id)kCGWindowBounds], &bounds)) continue;
+        for (NSScreen *screen in NSScreen.screens) {
+            NSSize size = screen.frame.size;
+            if (bounds.size.width >= size.width * 0.98 && bounds.size.height >= size.height * 0.98) {
+                return YES;
+            }
+        }
+    }
+    return NO;
+}
+
 - (NSScreen *)screenContainingPoint:(NSPoint)point {
     for (NSScreen *screen in NSScreen.screens) {
         if (NSPointInRect(point, screen.frame)) return screen;
@@ -788,6 +873,7 @@ static const double MMJumpDuration = 1.8;
 @property(nonatomic, strong) NSStatusItem *statusItem;
 @property(nonatomic, strong) NSMenuItem *pauseItem;
 @property(nonatomic, strong) NSMenuItem *visibilityItem;
+@property(nonatomic, strong) NSMenuItem *cinemaItem;
 @end
 
 @implementation MMAppDelegate
@@ -822,6 +908,8 @@ static const double MMJumpDuration = 1.8;
     [menu addItem:[self item:@"叫妹妹过来" action:@selector(bringPet:) key:@"b"]];
     [menu addItem:[self item:@"和妹妹玩" action:@selector(playWithPet:) key:@"p"]];
     [menu addItem:[self item:@"妹妹，讲个冷笑话" action:@selector(tellJoke:) key:@"j"]];
+    self.cinemaItem = [self item:@"开启观影模式" action:@selector(toggleCinemaMode:) key:@"m"];
+    [menu addItem:self.cinemaItem];
 
     self.pauseItem = [self item:@"暂停散步" action:@selector(togglePause:) key:@" "];
     [menu addItem:self.pauseItem];
@@ -838,6 +926,10 @@ static const double MMJumpDuration = 1.8;
     self.controller.onVisibilityChanged = ^(BOOL hidden) {
         weakSelf.visibilityItem.title = hidden ? @"显示妹妹" : @"隐藏妹妹";
     };
+    self.controller.onCinemaModeChanged = ^(BOOL enabled) {
+        weakSelf.cinemaItem.title = enabled ? @"退出观影模式" : @"开启观影模式";
+        weakSelf.cinemaItem.state = enabled ? NSControlStateValueOn : NSControlStateValueOff;
+    };
 }
 
 - (NSMenuItem *)item:(NSString *)title action:(SEL)action key:(NSString *)key {
@@ -849,6 +941,7 @@ static const double MMJumpDuration = 1.8;
 - (void)bringPet:(id)sender { [self.controller bringToMouse]; }
 - (void)playWithPet:(id)sender { [self.controller playNow]; }
 - (void)tellJoke:(id)sender { [self.controller tellJokeNow]; }
+- (void)toggleCinemaMode:(id)sender { [self.controller toggleCinemaMode]; }
 - (void)togglePause:(id)sender { [self.controller togglePause]; }
 - (void)toggleVisibility:(id)sender { [self.controller toggleVisibility]; }
 - (void)quit:(id)sender { [NSApp terminate:nil]; }
@@ -863,7 +956,7 @@ int main(int argc, const char *argv[]) {
             return 0;
         }
         if ([NSProcessInfo.processInfo.arguments containsObject:@"--print-behavior-config"]) {
-            printf("walk_fps=5.2 walk_speed=42 idle_fps=2.0 play_fps=2.1 corner_hide_seconds=300 hover_reveal=jump-to-corner left_source=running-right-mirrored\n");
+            printf("walk_fps=5.2 walk_speed=42 idle_fps=2.0 play_fps=2.1 corner_hide_seconds=300 hover_reveal=jump-to-corner focus_protection=typing-fullscreen-media cinema_mode=manual left_source=running-right-mirrored\n");
             return 0;
         }
         NSApplication *app = NSApplication.sharedApplication;

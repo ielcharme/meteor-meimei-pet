@@ -32,8 +32,11 @@ Behavior:
 - when manually parked at the left or right bottom edge, five minutes without direct pet interaction triggers a slow retreat that leaves a clickable `24 pt` peek
 - the peeking area has an always-active hover tracker; mouse entry triggers a `0.82 s` eased hop back to the same corner and resets the five-minute timer without starting a walk
 - shows a bundled offline cold joke every 40–90 minutes for about 8 seconds while visible and unpaused
-- click to play; drag to reposition; menu-bar controls to recall, play, tell a joke, pause, hide, or quit
-- no network, telemetry, conversations, credentials, login-item persistence, or protected-device access
+- hides during keyboard activity and returns to the same state and location after about `3 s` without a key event
+- hides while the foreground app has a full-screen window or is a known media player; manual menu-bar cinema mode covers windowed browser playback without inspecting its content
+- click to play; drag to reposition; menu-bar controls to recall, play, tell a joke, toggle cinema mode, pause, hide, or quit
+- focus protection may read only anonymous seconds-since-last-key-event, frontmost app identity, and window geometry; it must not record key values or inspect screen, browser, or conversation content
+- no network, telemetry, conversations, credentials, login-item persistence, Accessibility permission, screen recording, or protected-device access
 
 Build output must remain a valid signed-on-disk app bundle. Ad-hoc signing is sufficient for local use; it is not Apple notarization.
 

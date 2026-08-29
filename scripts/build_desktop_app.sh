@@ -29,6 +29,7 @@ trap '/bin/rm -rf "$BUILD_ROOT"' EXIT
   -fmodules-cache-path="$BUILD_ROOT/module-cache" \
   -isysroot "$SDK_PATH" \
   -framework Cocoa \
+  -framework ApplicationServices \
   "$SOURCE" \
   -o "$BUILD_ROOT/妹妹.app/Contents/MacOS/MeteorMeimei"
 /bin/cp "$PLIST" "$BUILD_ROOT/妹妹.app/Contents/Info.plist"
