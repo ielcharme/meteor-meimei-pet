@@ -80,15 +80,17 @@ verify_app() {
   [[ -x "$executable" ]] || { echo "Missing app executable: $executable" >&2; return 1; }
   [[ -f "$atlas" ]] || { echo "Missing app atlas: $atlas" >&2; return 1; }
 
-  local bundle_id version architecture pet_size
+  local bundle_id version architecture pet_size behavior_config
   bundle_id="$(/usr/bin/plutil -extract CFBundleIdentifier raw -o - "$plist")"
   version="$(/usr/bin/plutil -extract CFBundleShortVersionString raw -o - "$plist")"
   architecture="$(/usr/bin/file "$executable")"
   [[ "$bundle_id" == "com.lucie.meteor-meimei" ]] || { echo "Unexpected bundle id: $bundle_id" >&2; return 1; }
-  [[ "$version" == "1.2" ]] || { echo "Unexpected app version: $version" >&2; return 1; }
+  [[ "$version" == "1.3" ]] || { echo "Unexpected app version: $version" >&2; return 1; }
   [[ "$architecture" == *"arm64"* ]] || { echo "Desktop app is not arm64: $architecture" >&2; return 1; }
   pet_size="$("$executable" --print-pet-size)"
   [[ "$pet_size" =~ ^[0-9]+x[0-9]+\.[0-9][0-9]$ ]] || { echo "Unexpected desktop pet size: $pet_size" >&2; return 1; }
+  behavior_config="$("$executable" --print-behavior-config)"
+  [[ "$behavior_config" == *"corner_hide_seconds=300"* && "$behavior_config" == *"left_source=running-right-mirrored"* ]] || { echo "Unexpected behavior config: $behavior_config" >&2; return 1; }
   /usr/bin/codesign --verify --deep --strict "$app"
   echo "OK app: $app (pet ${pet_size})"
 }
