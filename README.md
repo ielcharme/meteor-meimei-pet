@@ -13,6 +13,7 @@
 1. 保存妹妹已经确认好的形象和动画，不必每次重新生成。
 2. 让 Codex 知道怎样安全地安装、检查、修复和重新构建妹妹。
 3. 让你可以直接把妹妹放到 Mac 桌面，她会自己走动，也可以被点击、拖动和召回。
+4. 让桌面妹妹自动匹配 Codex 当前宠物宽度，并偶尔用本地气泡讲一个冷笑话。
 
 妹妹是一只陨石纹边境牧羊犬：石墨黑、银灰和白色毛发，宇宙蓝眼睛，戴铜色名牌。当前版本已经处理拖动后的方向问题：拖动时使用完整待机帧，松手后挥爪，再继续散步，不会把向左跑的头部错误叠到身体上。
 
@@ -53,7 +54,10 @@ open "$HOME/Applications/妹妹.app"
 - 偶尔待机、挥爪、跳跃或玩耍
 - 点击妹妹：立刻触发一次互动
 - 水平拖动妹妹：把她放到新的位置；松手后她会挥爪
-- 点击菜单栏的爪印：叫妹妹过来、和她玩、暂停散步、隐藏或退出
+- 每隔约 40–90 分钟：妹妹随机讲一个冷笑话，气泡显示约 8 秒
+- 点击菜单栏的爪印：叫妹妹过来、和她玩、让她立刻讲笑话、暂停散步、隐藏或退出
+
+桌面妹妹启动时只读取 `~/.codex/config.toml` 里的 `avatar-overlay-mascot-width-px`，让她与 Codex 当前显示宽度保持 1:1；当前这台 Mac 的设置是 `97 px`。如果没有找到该设置，则默认使用 `97 px`。动画高度会按原始 `192:208` 单元格比例自动计算，不会拉伸妹妹。
 
 关闭窗口不会作为主要操作入口；要完全退出，请点击菜单栏爪印并选择「退出妹妹」。App 不会自动设置开机启动。
 
@@ -151,6 +155,10 @@ Skill 是给 Codex 使用的操作说明和资源包，不是正在运行的桌�
 
 桌面 App 是一个独立、本地运行的小程序。她会自主玩耍，但不会读取 Codex 对话、屏幕内容或账户信息。
 
+### 冷笑话需要联网或调用 AI 吗？
+
+不需要。笑话随 App 打包并在本机随机选择，不会联网，也不会读取你的对话。妹妹暂停或隐藏时不会自动讲笑话；想立刻听，可以点击菜单栏爪印并选择「妹妹，讲个冷笑话」。
+
 ### 拖动妹妹后，她为什么回到屏幕底部？
 
 妹妹的活动区域设计在当前屏幕底部。拖动用于调整她的水平位置；松手后她会回到底部基线并继续活动。
@@ -197,7 +205,7 @@ meteor-meimei-pet/
 - 网格：8 列 × 11 行，每格 `192 × 208`
 - 动作：待机、左右跑、挥爪、跳跃、失败、等待、任务中、检查和 16 个注视方向
 - 桌面 App：`arm64`，Bundle ID `com.lucie.meteor-meimei`
-- 无网络请求、遥测、账户读取或凭据存储
+- 无网络请求、遥测、对话读取或凭据存储；只读取 Codex 的宠物宽度设置
 - 不申请辅助功能、录屏、麦克风或摄像头权限
 - 不创建开机启动项
 
@@ -216,4 +224,4 @@ meteor-meimei-pet/
 
 ## English summary
 
-Meteor Meimei is Lucie's reusable Codex v2 pet package and a separate local-only macOS desktop companion. Install the Skill when you want Codex to manage, verify, or restore the pet. Install the desktop app when you want Meimei to roam along the bottom of your Mac screen, react to clicks and horizontal dragging, and expose pause, hide, recall, play, and quit controls from the menu bar.
+Meteor Meimei is Lucie's reusable Codex v2 pet package and a separate local-only macOS desktop companion. The desktop app matches the current Codex pet width, roams along the bottom of the screen, reacts to clicks and horizontal dragging, and occasionally shows an offline cold joke in a speech bubble. Menu-bar controls cover recall, play, tell-a-joke, pause, hide, and quit.

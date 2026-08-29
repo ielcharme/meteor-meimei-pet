@@ -25,8 +25,10 @@ Behavior:
 
 - transparent floating pet near the bottom of the current screen
 - autonomous left/right walking, idle, waving, jumping, play, and review states
-- click to play; drag to reposition; menu-bar controls to recall, pause, hide, or quit
-- no network, telemetry, credentials, login-item persistence, or protected-device access
+- reads only `avatar-overlay-mascot-width-px` from `~/.codex/config.toml` and preserves the atlas `192:208` aspect ratio; fallback width is `97 px`
+- shows a bundled offline cold joke every 40–90 minutes for about 8 seconds while visible and unpaused
+- click to play; drag to reposition; menu-bar controls to recall, play, tell a joke, pause, hide, or quit
+- no network, telemetry, conversations, credentials, login-item persistence, or protected-device access
 
 Build output must remain a valid signed-on-disk app bundle. Ad-hoc signing is sufficient for local use; it is not Apple notarization.
 

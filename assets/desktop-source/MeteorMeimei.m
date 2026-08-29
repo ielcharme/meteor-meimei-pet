@@ -34,6 +34,48 @@ static CGFloat MMRandom(CGFloat minimum, CGFloat maximum) {
     return minimum + (maximum - minimum) * unit;
 }
 
+static CGFloat MMCurrentCodexPetWidth(void) {
+    const CGFloat fallbackWidth = 97.0;
+    NSString *configPath = [NSHomeDirectory() stringByAppendingPathComponent:@".codex/config.toml"];
+    NSString *config = [NSString stringWithContentsOfFile:configPath encoding:NSUTF8StringEncoding error:nil];
+    if (!config) return fallbackWidth;
+
+    for (NSString *line in [config componentsSeparatedByCharactersInSet:NSCharacterSet.newlineCharacterSet]) {
+        NSString *trimmed = [line stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+        if (![trimmed hasPrefix:@"avatar-overlay-mascot-width-px"]) continue;
+        NSArray<NSString *> *parts = [trimmed componentsSeparatedByString:@"="];
+        if (parts.count < 2) break;
+        CGFloat width = [parts.lastObject stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet].doubleValue;
+        if (width >= 80.0 && width <= 224.0) return width;
+        break;
+    }
+    return fallbackWidth;
+}
+
+static NSArray<NSString *> *MMColdJokes(void) {
+    static NSArray<NSString *> *jokes;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        jokes = @[
+            @"什么动物最容易摔倒？狐狸，因为它脚滑。",
+            @"什么门永远关不上？球门。",
+            @"什么布剪不断？瀑布。",
+            @"为什么数学书总皱眉？因为它有太多问题。",
+            @"冰箱为什么很有礼貌？开门总先亮灯。",
+            @"铅笔累了会去哪？去削息一下。",
+            @"什么东西越洗越脏？水。",
+            @"哪一种狗最会保密？沉默是金毛。",
+            @"哪个字人人见了都会念错？错。",
+            @"为什么电脑爱打喷嚏？因为它中了病毒。",
+            @"云为什么不去上班？因为它总想飘走。",
+            @"水杯为什么很开心？因为你终于想起它了。",
+            @"边牧为什么不迷路？妹妹会看代码，也会看路。",
+            @"今天的冷笑话有多冷？妹妹的鼻尖都起雾啦。"
+        ];
+    });
+    return jokes;
+}
+
 @interface MMPetView : NSView
 @property(nonatomic, strong) NSImage *atlas;
 @property(nonatomic) NSInteger row;
@@ -116,16 +158,67 @@ static CGFloat MMRandom(CGFloat minimum, CGFloat maximum) {
 - (BOOL)canBecomeMainWindow { return NO; }
 @end
 
+@interface MMBubbleView : NSView
+@property(nonatomic, copy) NSString *message;
+@end
+
+@implementation MMBubbleView
+
+- (BOOL)isFlipped { return YES; }
+
+- (void)setMessage:(NSString *)message {
+    _message = [message copy];
+    self.needsDisplay = YES;
+}
+
+- (void)drawRect:(NSRect)dirtyRect {
+    [super drawRect:dirtyRect];
+    NSRect body = NSInsetRect(NSMakeRect(1, 1, NSWidth(self.bounds) - 2, NSHeight(self.bounds) - 12), 1, 1);
+    NSBezierPath *bubble = [NSBezierPath bezierPathWithRoundedRect:body xRadius:14 yRadius:14];
+    [[NSColor colorWithWhite:1 alpha:0.96] setFill];
+    [bubble fill];
+    [[NSColor colorWithWhite:0 alpha:0.14] setStroke];
+    bubble.lineWidth = 1;
+    [bubble stroke];
+
+    CGFloat centerX = NSMidX(self.bounds);
+    NSBezierPath *tail = [NSBezierPath bezierPath];
+    [tail moveToPoint:NSMakePoint(centerX - 8, NSMaxY(body) - 1)];
+    [tail lineToPoint:NSMakePoint(centerX, NSMaxY(self.bounds) - 1)];
+    [tail lineToPoint:NSMakePoint(centerX + 8, NSMaxY(body) - 1)];
+    [tail closePath];
+    [[NSColor colorWithWhite:1 alpha:0.96] setFill];
+    [tail fill];
+
+    NSMutableParagraphStyle *paragraph = [NSMutableParagraphStyle new];
+    paragraph.alignment = NSTextAlignmentCenter;
+    paragraph.lineBreakMode = NSLineBreakByWordWrapping;
+    NSDictionary *attributes = @{
+        NSFontAttributeName: [NSFont systemFontOfSize:13 weight:NSFontWeightMedium],
+        NSForegroundColorAttributeName: [NSColor colorWithWhite:0.12 alpha:1],
+        NSParagraphStyleAttributeName: paragraph
+    };
+    NSRect textRect = NSInsetRect(body, 12, 9);
+    [self.message ?: @"" drawInRect:textRect withAttributes:attributes];
+}
+
+@end
+
 @interface MMPetController : NSObject
 @property(nonatomic, strong) MMPetPanel *panel;
 @property(nonatomic, strong) MMPetView *petView;
+@property(nonatomic, strong) MMPetPanel *bubblePanel;
+@property(nonatomic, strong) MMBubbleView *bubbleView;
 @property(nonatomic, strong) NSTimer *timer;
 @property(nonatomic) NSTimeInterval lastTick;
+@property(nonatomic) NSTimeInterval nextJokeAt;
+@property(nonatomic) NSTimeInterval bubbleHideAt;
 @property(nonatomic) MMPetMode mode;
 @property(nonatomic) double animationElapsed;
 @property(nonatomic) double behaviorRemaining;
 @property(nonatomic, strong) NSNumber *targetX;
 @property(nonatomic) CGFloat baseY;
+@property(nonatomic) NSSize petSize;
 @property(nonatomic) BOOL paused;
 @property(nonatomic) BOOL petHidden;
 @property(nonatomic) BOOL dragging;
@@ -136,18 +229,22 @@ static CGFloat MMRandom(CGFloat minimum, CGFloat maximum) {
 - (void)toggleVisibility;
 - (void)playNow;
 - (void)bringToMouse;
+- (void)tellJokeNow;
 - (void)dragFinished;
 @end
 
 @implementation MMPetController
 
-static const CGFloat MMPetWidth = 156;
-static const CGFloat MMPetHeight = 169;
+static const CGFloat MMBubbleWidth = 236;
+static const CGFloat MMBubbleHeight = 78;
+static const NSTimeInterval MMJokeDisplayDuration = 8.0;
 
 - (instancetype)initWithAtlas:(NSImage *)atlas {
     self = [super init];
     if (self) {
-        NSRect frame = NSMakeRect(0, 0, MMPetWidth, MMPetHeight);
+        CGFloat petWidth = MMCurrentCodexPetWidth();
+        _petSize = NSMakeSize(petWidth, petWidth * 208.0 / 192.0);
+        NSRect frame = NSMakeRect(0, 0, _petSize.width, _petSize.height);
         _panel = [[MMPetPanel alloc] initWithContentRect:frame
                                               styleMask:NSWindowStyleMaskBorderless | NSWindowStyleMaskNonactivatingPanel
                                                 backing:NSBackingStoreBuffered
@@ -162,6 +259,21 @@ static const CGFloat MMPetHeight = 169;
         _panel.hidesOnDeactivate = NO;
         _panel.collectionBehavior = NSWindowCollectionBehaviorCanJoinAllSpaces | NSWindowCollectionBehaviorFullScreenAuxiliary;
 
+        NSRect bubbleFrame = NSMakeRect(0, 0, MMBubbleWidth, MMBubbleHeight);
+        _bubblePanel = [[MMPetPanel alloc] initWithContentRect:bubbleFrame
+                                                    styleMask:NSWindowStyleMaskBorderless | NSWindowStyleMaskNonactivatingPanel
+                                                      backing:NSBackingStoreBuffered
+                                                        defer:NO];
+        _bubbleView = [[MMBubbleView alloc] initWithFrame:bubbleFrame];
+        _bubblePanel.contentView = _bubbleView;
+        _bubblePanel.opaque = NO;
+        _bubblePanel.backgroundColor = NSColor.clearColor;
+        _bubblePanel.hasShadow = YES;
+        _bubblePanel.level = NSFloatingWindowLevel;
+        _bubblePanel.ignoresMouseEvents = YES;
+        _bubblePanel.hidesOnDeactivate = NO;
+        _bubblePanel.collectionBehavior = NSWindowCollectionBehaviorCanJoinAllSpaces | NSWindowCollectionBehaviorFullScreenAuxiliary;
+
         __weak typeof(self) weakSelf = self;
         _petView.onClick = ^{ [weakSelf playNow]; };
         _petView.onDrag = ^(NSPoint point) { [weakSelf dragTo:point]; };
@@ -171,6 +283,7 @@ static const CGFloat MMPetHeight = 169;
         [_panel orderFrontRegardless];
         [self enterMode:MMPetModeIdle duration:1.2];
         _lastTick = NSProcessInfo.processInfo.systemUptime;
+        [self scheduleNextJokeFrom:_lastTick];
         _timer = [NSTimer timerWithTimeInterval:1.0 / 30.0
                                         target:self
                                       selector:@selector(tick:)
@@ -185,14 +298,20 @@ static const CGFloat MMPetHeight = 169;
 
 - (void)togglePause {
     self.paused = !self.paused;
-    if (self.paused) [self enterMode:MMPetModeIdle duration:DBL_MAX];
+    if (self.paused) {
+        [self enterMode:MMPetModeIdle duration:DBL_MAX];
+        [self hideBubble];
+    }
     else [self chooseNextBehavior:NO];
     if (self.onPauseChanged) self.onPauseChanged(self.paused);
 }
 
 - (void)toggleVisibility {
     self.petHidden = !self.petHidden;
-    if (self.petHidden) [self.panel orderOut:nil];
+    if (self.petHidden) {
+        [self.panel orderOut:nil];
+        [self hideBubble];
+    }
     else [self.panel orderFrontRegardless];
     if (self.onVisibilityChanged) self.onVisibilityChanged(self.petHidden);
 }
@@ -214,11 +333,18 @@ static const CGFloat MMPetHeight = 169;
     [self enterMode:MMPetModeWave duration:1.4];
 }
 
+- (void)tellJokeNow {
+    if (self.petHidden) [self bringToMouse];
+    [self showRandomJoke];
+}
+
 - (void)tick:(NSTimer *)timer {
     NSTimeInterval now = NSProcessInfo.processInfo.systemUptime;
     NSTimeInterval delta = MIN(now - self.lastTick, 0.1);
     self.lastTick = now;
+    if (self.bubblePanel.visible && now >= self.bubbleHideAt) [self hideBubble];
     if (self.paused || self.petHidden) return;
+    if (now >= self.nextJokeAt) [self showRandomJoke];
     if (self.dragging) return;
 
     self.animationElapsed += delta;
@@ -239,6 +365,7 @@ static const CGFloat MMPetHeight = 169;
             [self.panel setFrameOrigin:NSMakePoint(self.panel.frame.origin.x, self.baseY)];
             break;
     }
+    [self updateBubblePosition];
     if (self.behaviorRemaining <= 0) [self chooseNextBehavior:NO];
 }
 
@@ -251,7 +378,7 @@ static const CGFloat MMPetHeight = 169;
     CGFloat direction = self.mode == MMPetModeWalkRight ? 1 : -1;
     CGFloat x = self.panel.frame.origin.x + direction * 76 * delta;
     CGFloat minX = NSMinX(screen.visibleFrame);
-    CGFloat maxX = NSMaxX(screen.visibleFrame) - MMPetWidth;
+    CGFloat maxX = NSMaxX(screen.visibleFrame) - self.petSize.width;
     x = MIN(MAX(x, minX), maxX);
     [self.panel setFrameOrigin:NSMakePoint(x, self.baseY)];
 
@@ -288,7 +415,7 @@ static const CGFloat MMPetHeight = 169;
     if (!screen) return;
     self.baseY = NSMinY(screen.visibleFrame) + 6;
     CGFloat minX = NSMinX(screen.visibleFrame);
-    CGFloat maxX = NSMaxX(screen.visibleFrame) - MMPetWidth;
+    CGFloat maxX = NSMaxX(screen.visibleFrame) - self.petSize.width;
     CGFloat currentX = MIN(MAX(self.panel.frame.origin.x, minX), maxX);
     CGFloat minimumDistance = MIN(240, MAX(80, (maxX - minX) * 0.25));
     CGFloat destination = MMRandom(minX, maxX);
@@ -318,8 +445,9 @@ static const CGFloat MMPetHeight = 169;
     NSScreen *screen = [self screenContainingPoint:mouse] ?: NSScreen.mainScreen;
     if (!screen) return;
     self.baseY = NSMinY(screen.visibleFrame) + 6;
-    CGFloat x = MIN(MAX(mouse.x - MMPetWidth / 2, NSMinX(screen.visibleFrame)), NSMaxX(screen.visibleFrame) - MMPetWidth);
-    [self.panel setFrame:NSMakeRect(x, self.baseY, MMPetWidth, MMPetHeight) display:YES];
+    CGFloat x = MIN(MAX(mouse.x - self.petSize.width / 2, NSMinX(screen.visibleFrame)), NSMaxX(screen.visibleFrame) - self.petSize.width);
+    [self.panel setFrame:NSMakeRect(x, self.baseY, self.petSize.width, self.petSize.height) display:YES];
+    [self updateBubblePosition];
 }
 
 - (void)dragTo:(NSPoint)mouse {
@@ -328,8 +456,9 @@ static const CGFloat MMPetHeight = 169;
     self.dragging = YES;
     self.targetX = nil;
     self.baseY = NSMinY(screen.visibleFrame) + 6;
-    CGFloat x = MIN(MAX(mouse.x - MMPetWidth / 2, NSMinX(screen.visibleFrame)), NSMaxX(screen.visibleFrame) - MMPetWidth);
+    CGFloat x = MIN(MAX(mouse.x - self.petSize.width / 2, NSMinX(screen.visibleFrame)), NSMaxX(screen.visibleFrame) - self.petSize.width);
     [self.panel setFrameOrigin:NSMakePoint(x, self.baseY)];
+    [self updateBubblePosition];
     self.petView.row = 0;
     self.petView.column = 0;
 }
@@ -350,6 +479,40 @@ static const CGFloat MMPetHeight = 169;
 - (NSScreen *)currentScreen {
     NSPoint center = NSMakePoint(NSMidX(self.panel.frame), NSMidY(self.panel.frame));
     return [self screenContainingPoint:center] ?: NSScreen.mainScreen;
+}
+
+- (void)scheduleNextJokeFrom:(NSTimeInterval)now {
+    self.nextJokeAt = now + MMRandom(40.0 * 60.0, 90.0 * 60.0);
+}
+
+- (void)showRandomJoke {
+    NSArray<NSString *> *jokes = MMColdJokes();
+    self.bubbleView.message = jokes[arc4random_uniform((uint32_t)jokes.count)];
+    [self updateBubblePosition];
+    [self.bubblePanel orderFrontRegardless];
+    NSTimeInterval now = NSProcessInfo.processInfo.systemUptime;
+    self.bubbleHideAt = now + MMJokeDisplayDuration;
+    [self scheduleNextJokeFrom:now];
+}
+
+- (void)hideBubble {
+    [self.bubblePanel orderOut:nil];
+    self.bubbleHideAt = 0;
+}
+
+- (void)updateBubblePosition {
+    if (!self.bubblePanel.visible && self.bubbleView.message.length == 0) return;
+    NSScreen *screen = [self currentScreen];
+    if (!screen) return;
+    NSRect visible = screen.visibleFrame;
+    CGFloat x = NSMidX(self.panel.frame) - MMBubbleWidth / 2.0;
+    x = MIN(MAX(x, NSMinX(visible) + 6), NSMaxX(visible) - MMBubbleWidth - 6);
+    CGFloat y = NSMaxY(self.panel.frame) + 4;
+    if (y + MMBubbleHeight > NSMaxY(visible) - 6) {
+        y = NSMinY(self.panel.frame) - MMBubbleHeight - 4;
+    }
+    y = MIN(MAX(y, NSMinY(visible) + 6), NSMaxY(visible) - MMBubbleHeight - 6);
+    [self.bubblePanel setFrame:NSMakeRect(x, y, MMBubbleWidth, MMBubbleHeight) display:YES];
 }
 
 @end
@@ -392,6 +555,7 @@ static const CGFloat MMPetHeight = 169;
     [menu addItem:NSMenuItem.separatorItem];
     [menu addItem:[self item:@"叫妹妹过来" action:@selector(bringPet:) key:@"b"]];
     [menu addItem:[self item:@"和妹妹玩" action:@selector(playWithPet:) key:@"p"]];
+    [menu addItem:[self item:@"妹妹，讲个冷笑话" action:@selector(tellJoke:) key:@"j"]];
 
     self.pauseItem = [self item:@"暂停散步" action:@selector(togglePause:) key:@" "];
     [menu addItem:self.pauseItem];
@@ -418,6 +582,7 @@ static const CGFloat MMPetHeight = 169;
 
 - (void)bringPet:(id)sender { [self.controller bringToMouse]; }
 - (void)playWithPet:(id)sender { [self.controller playNow]; }
+- (void)tellJoke:(id)sender { [self.controller tellJokeNow]; }
 - (void)togglePause:(id)sender { [self.controller togglePause]; }
 - (void)toggleVisibility:(id)sender { [self.controller toggleVisibility]; }
 - (void)quit:(id)sender { [NSApp terminate:nil]; }
@@ -426,6 +591,11 @@ static const CGFloat MMPetHeight = 169;
 
 int main(int argc, const char *argv[]) {
     @autoreleasepool {
+        if ([NSProcessInfo.processInfo.arguments containsObject:@"--print-pet-size"]) {
+            CGFloat width = MMCurrentCodexPetWidth();
+            printf("%.0fx%.2f\n", width, width * 208.0 / 192.0);
+            return 0;
+        }
         NSApplication *app = NSApplication.sharedApplication;
         MMAppDelegate *delegate = [MMAppDelegate new];
         app.delegate = delegate;
