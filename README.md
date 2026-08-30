@@ -96,6 +96,8 @@ After launch, a paw icon appears in the macOS menu bar. Its menu can:
 
 The app does not add itself to Login Items. To close it completely, choose **Quit Meimei** from the paw menu.
 
+You can also place the pointer over Meimei, right-click, and choose **Temporarily Quit Meimei**. This closes the app without uninstalling it; open `~/Applications/妹妹.app` whenever you want her back.
+
 ### Update an installed app
 
 The public installer does not silently overwrite an existing copy. To update:
@@ -319,6 +321,8 @@ open "$HOME/Applications/妹妹.app"
 - 退出妹妹
 
 App 不会自动加入开机启动项。需要完全关闭时，请从爪印菜单选择「退出妹妹」。
+
+也可以把鼠标放在妹妹身上，右键选择「暂时退出妹妹」。这只会关闭 App，不会卸载；想念她时再打开 `~/Applications/妹妹.app` 即可。
 
 ### 更新已经安装的妹妹
 

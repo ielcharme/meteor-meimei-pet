@@ -100,6 +100,7 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
 @property(nonatomic, copy) void (^onDrag)(NSPoint point);
 @property(nonatomic, copy) void (^onDragEnd)(void);
 @property(nonatomic, copy) void (^onHover)(void);
+@property(nonatomic, copy) void (^onTemporaryQuit)(void);
 @property(nonatomic, strong) NSTrackingArea *hoverTrackingArea;
 @property(nonatomic) BOOL didDrag;
 @end
@@ -192,6 +193,20 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
         self.onClick();
     }
     self.didDrag = NO;
+}
+
+- (void)rightMouseDown:(NSEvent *)event {
+    NSMenu *menu = [NSMenu new];
+    NSMenuItem *quitItem = [[NSMenuItem alloc] initWithTitle:@"暂时退出妹妹"
+                                                     action:@selector(temporarilyQuit:)
+                                              keyEquivalent:@""];
+    quitItem.target = self;
+    [menu addItem:quitItem];
+    [NSMenu popUpContextMenu:menu withEvent:event forView:self];
+}
+
+- (void)temporarilyQuit:(id)sender {
+    if (self.onTemporaryQuit) self.onTemporaryQuit();
 }
 
 @end
@@ -356,6 +371,7 @@ static const double MMJumpDuration = 1.8;
         _petView.onDrag = ^(NSPoint point) { [weakSelf dragTo:point]; };
         _petView.onDragEnd = ^{ [weakSelf dragFinished]; };
         _petView.onHover = ^{ [weakSelf hoverReveal]; };
+        _petView.onTemporaryQuit = ^{ [NSApp terminate:nil]; };
 
         [self placeNearMouse];
         [_panel orderFrontRegardless];
@@ -1035,7 +1051,7 @@ int main(int argc, const char *argv[]) {
             return 0;
         }
         if ([NSProcessInfo.processInfo.arguments containsObject:@"--print-behavior-config"]) {
-            printf("walk_fps=5.2 walk_speed=42 idle_fps=2.0 play_fps=2.1 corner_hide_seconds=300 hover_reveal=jump-to-corner focus_protection=typing-fullscreen-media cinema_mode=manual wellness_interval_seconds=3600 wellness_display_seconds=10 work_active_window_seconds=300 left_source=running-right-mirrored\n");
+            printf("walk_fps=5.2 walk_speed=42 idle_fps=2.0 play_fps=2.1 corner_hide_seconds=300 hover_reveal=jump-to-corner focus_protection=typing-fullscreen-media cinema_mode=manual wellness_interval_seconds=3600 wellness_display_seconds=10 work_active_window_seconds=300 right_click_quit=temporary left_source=running-right-mirrored\n");
             return 0;
         }
         NSApplication *app = NSApplication.sharedApplication;

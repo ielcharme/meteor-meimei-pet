@@ -36,7 +36,7 @@ Behavior:
 - a due reminder waits for the three-second typing quiet period before appearing; when it temporarily reveals an edge-hidden pet, the pet returns to that edge after the bubble closes
 - hides during keyboard activity and returns to the same state and location after about `3 s` without a key event
 - hides while the foreground app has a full-screen window or is a known media player; manual menu-bar cinema mode covers windowed browser playback without inspecting its content
-- click to play; drag to reposition; menu-bar controls to recall, play, tell a joke, toggle cinema mode, pause, hide, or quit
+- click to play; drag to reposition; right-click the pet and choose `暂时退出妹妹` to terminate the running app without uninstalling it; menu-bar controls to recall, play, tell a joke, toggle cinema mode, pause, hide, or quit
 - focus protection may read only anonymous seconds-since-last-key-event, frontmost app identity, and window geometry; it must not record key values or inspect screen, browser, or conversation content
 - no network, telemetry, conversations, credentials, login-item persistence, Accessibility permission, screen recording, or protected-device access
 
