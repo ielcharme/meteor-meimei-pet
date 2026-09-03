@@ -416,6 +416,7 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
 @property(nonatomic) NSTimeInterval lastTick;
 @property(nonatomic) NSTimeInterval nextJokeAt;
 @property(nonatomic) NSTimeInterval nextWellnessAt;
+@property(nonatomic) NSTimeInterval nextRollAt;
 @property(nonatomic) NSTimeInterval bubbleHideAt;
 @property(nonatomic) MMPetMode mode;
 @property(nonatomic) double animationElapsed;
@@ -459,6 +460,8 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
 - (void)hoverReveal;
 - (void)toggleCinemaMode;
 - (void)dragFinished;
+- (void)scheduleNextRollFrom:(NSTimeInterval)now;
+- (void)maybePlayScheduledRoll:(NSTimeInterval)now;
 - (void)updateDisplayScale:(NSTimeInterval)now;
 - (void)setDisplayScaleImmediately:(CGFloat)scale;
 @end
@@ -469,6 +472,8 @@ static const CGFloat MMBubbleWidth = 236;
 static const CGFloat MMBubbleHeight = 78;
 static const NSTimeInterval MMJokeDisplayDuration = 8.0;
 static const NSTimeInterval MMWellnessInterval = 60.0 * 60.0;
+static const NSTimeInterval MMRollIntervalMinimum = 8.0 * 60.0;
+static const NSTimeInterval MMRollIntervalMaximum = 18.0 * 60.0;
 static const NSTimeInterval MMWellnessDisplayDuration = 10.0;
 static const NSTimeInterval MMWorkActivityWindow = 5.0 * 60.0;
 static const NSTimeInterval MMCornerHideDelay = 5.0 * 60.0;
@@ -537,6 +542,7 @@ static const double MMJumpDuration = 1.8;
         _lastInteractionAt = _lastTick;
         [self scheduleNextJokeFrom:_lastTick];
         [self scheduleNextWellnessFrom:_lastTick];
+        [self scheduleNextRollFrom:_lastTick];
         _timer = [NSTimer timerWithTimeInterval:1.0 / 30.0
                                         target:self
                                       selector:@selector(tick:)
@@ -585,6 +591,9 @@ static const double MMJumpDuration = 1.8;
     self.paused = NO;
     if (self.onPauseChanged) self.onPauseChanged(NO);
     [self enterMode:mode duration:MMActionDuration(mode)];
+    if (mode == MMPetModeBelly || mode == MMPetModeRoll) {
+        [self scheduleNextRollFrom:NSProcessInfo.processInfo.systemUptime];
+    }
 }
 
 - (void)bringToMouse {
@@ -641,6 +650,7 @@ static const double MMJumpDuration = 1.8;
     [self maybeShowWellnessReminder:now];
     if (self.paused || self.petHidden || self.focusProtected) return;
     if (!self.bubblePanel.visible && now >= self.nextJokeAt) [self showRandomJoke];
+    [self maybePlayScheduledRoll:now];
     if (self.dragging) return;
 
     if (self.dropping) {
@@ -720,22 +730,18 @@ static const double MMJumpDuration = 1.8;
     self.targetX = nil;
     if (forceRest) {
         uint32_t restRoll = arc4random_uniform(100);
-        if (restRoll < 84) [self enterMode:MMPetModeIdle duration:MMRandom(8.0, 16.0)];
-        else if (restRoll < 88) [self enterMode:MMPetModeCute duration:MMActionDuration(MMPetModeCute)];
-        else if (restRoll < 91) [self enterMode:MMPetModeEat duration:MMActionDuration(MMPetModeEat)];
-        else if (restRoll < 94) [self enterMode:MMPetModeBelly duration:MMActionDuration(MMPetModeBelly)];
-        else if (restRoll < 96) [self enterMode:MMPetModeRoll duration:MMActionDuration(MMPetModeRoll)];
-        else if (restRoll < 98) [self enterMode:MMPetModeWave duration:MMActionDuration(MMPetModeWave)];
+        if (restRoll < 88) [self enterMode:MMPetModeIdle duration:MMRandom(8.0, 16.0)];
+        else if (restRoll < 93) [self enterMode:MMPetModeCute duration:MMActionDuration(MMPetModeCute)];
+        else if (restRoll < 97) [self enterMode:MMPetModeEat duration:MMActionDuration(MMPetModeEat)];
+        else if (restRoll < 99) [self enterMode:MMPetModeWave duration:MMActionDuration(MMPetModeWave)];
         else [self enterMode:MMPetModeReview duration:MMRandom(8.0, 14.0)];
         return;
     }
     uint32_t roll = arc4random_uniform(100);
     if (roll < 12) [self beginWalk];
-    else if (roll < 86) [self enterMode:MMPetModeIdle duration:MMRandom(10.0, 22.0)];
-    else if (roll < 89) [self enterMode:MMPetModeCute duration:MMActionDuration(MMPetModeCute)];
-    else if (roll < 92) [self enterMode:MMPetModeEat duration:MMActionDuration(MMPetModeEat)];
-    else if (roll < 95) [self enterMode:MMPetModeBelly duration:MMActionDuration(MMPetModeBelly)];
-    else if (roll < 97) [self enterMode:MMPetModeRoll duration:MMActionDuration(MMPetModeRoll)];
+    else if (roll < 89) [self enterMode:MMPetModeIdle duration:MMRandom(10.0, 22.0)];
+    else if (roll < 93) [self enterMode:MMPetModeCute duration:MMActionDuration(MMPetModeCute)];
+    else if (roll < 96) [self enterMode:MMPetModeEat duration:MMActionDuration(MMPetModeEat)];
     else if (roll < 98) [self enterMode:MMPetModeWave duration:MMActionDuration(MMPetModeWave)];
     else if (roll < 99) [self enterMode:MMPetModeJump duration:MMJumpDuration];
     else [self enterMode:MMPetModeReview duration:MMRandom(8.0, 14.0)];
@@ -875,8 +881,8 @@ static const double MMJumpDuration = 1.8;
     self.liftedDuringDrag = lifted;
     self.petView.flippedHorizontally = NO;
     if (lifted) {
-        self.petView.row = 13;
-        self.petView.column = 1 + ((NSInteger)floor(NSProcessInfo.processInfo.systemUptime * 1.6) % 6);
+        self.petView.row = 18;
+        self.petView.column = ((NSInteger)floor(NSProcessInfo.processInfo.systemUptime * 1.5) % 8);
     } else {
         self.petView.row = 14;
         self.petView.column = 0;
@@ -890,9 +896,9 @@ static const double MMJumpDuration = 1.8;
     if (self.liftedDuringDrag || self.panel.frame.origin.y > self.baseY + 1) {
         self.dropping = YES;
         self.dropVelocity = 0;
-        self.mode = MMPetModeJump;
+        self.mode = MMPetModeApproach;
         self.behaviorRemaining = MMJumpDuration;
-        self.petView.row = 13;
+        self.petView.row = 18;
         self.petView.column = 6;
         self.petView.flippedHorizontally = NO;
     } else {
@@ -911,7 +917,7 @@ static const double MMJumpDuration = 1.8;
         [self settleAfterDrag];
         return;
     }
-    self.petView.row = 13;
+    self.petView.row = 18;
     self.petView.column = y - self.baseY > self.petSize.height * 0.45 ? 5 : 6;
     self.petView.flippedHorizontally = NO;
     [self.panel setFrameOrigin:NSMakePoint(self.panel.frame.origin.x, y)];
@@ -1102,6 +1108,37 @@ static const double MMJumpDuration = 1.8;
 
 - (void)scheduleNextWellnessFrom:(NSTimeInterval)now {
     self.nextWellnessAt = now + MMWellnessInterval;
+}
+
+- (void)scheduleNextRollFrom:(NSTimeInterval)now {
+    self.nextRollAt = now + MMRandom(MMRollIntervalMinimum, MMRollIntervalMaximum);
+}
+
+- (void)maybePlayScheduledRoll:(NSTimeInterval)now {
+    if (now < self.nextRollAt) return;
+    if (self.petHidden || self.paused || self.cinemaMode) {
+        [self scheduleNextRollFrom:now];
+        return;
+    }
+
+    NSTimeInterval secondsSinceInput = CGEventSourceSecondsSinceLastEventType(
+        kCGEventSourceStateCombinedSessionState,
+        kCGAnyInputEventType
+    );
+    BOOL recentlyActive = isfinite(secondsSinceInput) && secondsSinceInput >= 0 && secondsSinceInput < MMWorkActivityWindow;
+    if (!recentlyActive) {
+        [self scheduleNextRollFrom:now];
+        return;
+    }
+
+    if (self.focusProtected || self.dragging || self.dropping || self.edgeRetreating ||
+        self.edgeHidden || self.edgeEmerging || self.parkedEdge != 0 ||
+        self.bubblePanel.visible || self.wellnessReminderActive) return;
+    if (self.mode != MMPetModeIdle && self.mode != MMPetModeReview) return;
+
+    [self scheduleNextRollFrom:now];
+    MMPetMode scheduledMode = arc4random_uniform(2) == 0 ? MMPetModeBelly : MMPetModeRoll;
+    [self enterMode:scheduledMode duration:MMActionDuration(scheduledMode)];
 }
 
 - (void)maybeShowWellnessReminder:(NSTimeInterval)now {
@@ -1295,7 +1332,7 @@ int main(int argc, const char *argv[]) {
             return 0;
         }
         if ([NSProcessInfo.processInfo.arguments containsObject:@"--print-behavior-config"]) {
-            printf("single_instance=true fixed_pet_width=97 enlarged_action_scale=1.5-1.8 walk_action_scale=1.5 roll_action_scale=1.8 enlarged_actions=walk-left-walk-right-roll walk_fps=5.0 walk_speed=42 idle_fps=1.4 play_fps=1.5 custom_action_fps=1.4-5.0 custom_action_rows=11-18 custom_action_source=keyed-live-video video_actions=head-tilt-eating-roll-waiting-startup-walk-left-walk-right-expectant illustrated_fallback=false action_transition=tail-to-head-crossfade transition_seconds=0.62 endpoint_completion=entry-hold-exit-hold-clamped-last-frame double_click=cold-joke petting=eating petting_distance_px=84 petting_cooldown_seconds=12 automatic_behavior=calm corner_hide_seconds=300 hover_reveal=eating-to-corner focus_protection=typing-fullscreen-media cinema_mode=manual wellness_interval_seconds=3600 wellness_display_seconds=10 work_active_window_seconds=300 right_click_quit=temporary left_source=keyed-live-video right_source=keyed-live-video-with-real-tail-completion approach_trigger=expectant\n");
+            printf("single_instance=true fixed_pet_width=97 enlarged_action_scale=1.5-1.8 walk_action_scale=1.5 roll_action_scale=1.8 enlarged_actions=walk-left-walk-right-roll walk_fps=5.0 walk_speed=42 idle_fps=1.4 play_fps=1.5 custom_action_fps=1.4-5.0 custom_action_rows=11-18 custom_action_source=keyed-live-video video_actions=head-tilt-eating-roll-waiting-startup-walk-left-walk-right-expectant illustrated_fallback=false action_transition=tail-to-head-crossfade transition_seconds=0.62 endpoint_completion=entry-hold-exit-hold-clamped-last-frame double_click=cold-joke petting=eating petting_distance_px=84 petting_cooldown_seconds=12 automatic_behavior=calm automatic_roll=periodic roll_interval_seconds=480-1080 roll_active_only=true corner_hide_seconds=300 hover_reveal=eating-to-corner focus_protection=typing-fullscreen-media cinema_mode=manual wellness_interval_seconds=3600 wellness_display_seconds=10 work_active_window_seconds=300 right_click_quit=temporary left_source=keyed-live-video right_source=keyed-live-video-with-real-tail-completion approach_trigger=expectant upward_drag=expectant drop_action=expectant\n");
             return 0;
         }
         NSApplication *app = NSApplication.sharedApplication;

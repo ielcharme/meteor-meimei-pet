@@ -39,11 +39,12 @@ This repository contains:
 
 - Walks left and right, rests, greets, plays, and asks for attention at a relaxed pace.
 - Includes eight desktop-only actions cut directly from the latest real border-collie green-screen footage: head tilt, eating, rolling over, waiting, startup, walking left, walking right, and an expectant look.
-- Greeting uses the head-tilt clip; edge emergence uses eating; upward dragging and dropping use rolling; focused review uses waiting. Startup plays once when the app opens.
+- Greeting uses the head-tilt clip; edge emergence uses eating; upward dragging and dropping use the expectant/approach clip; focused review uses waiting. Startup plays once when the app opens.
 - Changes actions through completed endpoint holds and a gentle crossfade instead of a hard cut.
 - Single-click Meimei for a playful action; double-click her to hear an offline cold joke immediately.
 - Move the pointer back and forth over her body to pet her; after recognizing the petting gesture, she plays the eating action. A short cooldown prevents accidental repeats.
-- When dragged upward, Meimei switches to a “lifted gently by the scruff” pose and drops naturally when released.
+- When dragged upward, Meimei follows the pointer with her expectant “coming closer to you” action and drops naturally when released.
+- During recent computer use, her rolling/belly-up action appears naturally about once every 8–18 minutes; the menu and single-click play can still trigger it directly.
 - When parked in a bottom corner and ignored for five minutes, she retreats into the screen edge.
 - Hover over the visible edge of her body and she jumps back out to the same corner.
 - Occasionally tells a bundled offline cold joke in a speech bubble, even without interaction.
@@ -291,11 +292,12 @@ No open-source license is currently attached. Public visibility does not grant p
 
 - 用松弛的节奏左右散步、休息、打招呼、玩耍和期待互动。
 - 直接从最新真实边牧绿幕视频中抠出八个桌面专属动作：歪头杀、吃饭、打滚、等待、开机启动、向左走、向右走和一脸期待。
-- 打招呼使用歪头杀；从边框跳出使用吃饭；向上拖动、悬空和放下使用打滚；专注查看使用等待。App 打开时会完整播放一次开机启动。
+- 打招呼使用歪头杀；从边框跳出使用吃饭；向上拖动、悬空和放下使用“一脸期待／靠近你”；专注查看使用等待。App 打开时会完整播放一次开机启动。
 - 不同动作会先完整保留首帧和尾帧，再使用柔和的“上一动作尾帧 → 下一动作首帧”过渡，不再硬切。
 - 单击妹妹会触发互动动作；双击妹妹会马上讲一个本地冷笑话。
 - 在妹妹身上来回移动鼠标，就像抚摸她一样；识别到抚摸后会播放吃饭动作，并设有短暂冷却，避免误触后连续播放。
-- 向上拖动时，她会切换成“被轻轻拎着后颈”的悬空姿势；松手后自然落回桌面。
+- 向上拖动时，她会跟随鼠标播放“一脸期待／靠近你”；松手后自然落回桌面。
+- 电脑近期有人使用时，妹妹大约每隔 8–18 分钟会自然地打滚、翻肚皮一次；菜单和单击玩耍仍然可以直接触发。
 - 把她放在屏幕左下角或右下角，5 分钟没有互动后，她会躲进屏幕边框。
 - 鼠标放到露在边框外的部分时，她会跳出来并停在原来的桌角。
 - 即使没有互动，她也会偶尔用桌面气泡讲一个内置的本地冷笑话。

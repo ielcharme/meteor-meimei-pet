@@ -30,7 +30,7 @@ The desktop app loads two atlases:
 Behavior:
 
 - transparent floating pet near the bottom of the current screen
-- autonomous real-video left/right walking and waiting, plus head-tilt greeting, eating-based edge emergence, rolling-based lift/drop, startup, review waiting, and expectant states
+- autonomous real-video left/right walking and waiting, plus head-tilt greeting, eating-based edge emergence, expectant-based upward drag/drop, startup, review waiting, and periodic rolling/belly-up states
 - clicking **和妹妹玩** chooses a live-dog action; the paw menu can directly play head tilt, eating, rolling, waiting, startup, and expectant, while **叫妹妹过来** uses the expectant row
 - custom actions use source-appropriate `1.4–5.0 fps` timing; the source MP4 pixels supply the final real-dog appearance and motion, with the green set removed and the eating bowl retained
 - all visible desktop modes and direct drag/edge frames resolve to live-video rows `11–18`; the illustrated Codex atlas remains bundled for Codex compatibility but is never selected as a desktop fallback
@@ -39,7 +39,8 @@ Behavior:
 - permits only one LaunchServices instance through `LSMultipleInstancesProhibited`; launch with `open` and never `open -n`
 - uses relaxed motion timing: real-video directional walking is `5.0 fps` at `42 pt/s`, real-video waiting is `1.4 fps`, autonomous walking is selected only about 12 percent of ordinary decisions, and most decisions choose a `10–22 s` idle period
 - renders walking-left and walking-right from their own keyed real-video body-motion rows, with tracked baseline normalization and backing-pixel-aligned window movement; because every supplied right-walk frame clips the tail, only the missing tail is completed from mirrored real-tail pixels in the paired left-walk source
-- upward dragging anchors the pet near the scruff with airborne jump poses; release applies a gravity drop back to the screen baseline
+- upward dragging and the gravity drop use the expectant/approach row while following the pointer and returning to the screen baseline
+- during recent computer activity, one randomized timer plays the rolling/belly-up row about every `8–18 minutes`, only from an idle/review state; direct menu and single-click triggers remain available and reset the timer
 - when manually parked at the left or right bottom edge, five minutes without direct pet interaction triggers a slow retreat that leaves a clickable `24 pt` peek
 - the peeking area has an always-active hover tracker; mouse entry triggers a `0.82 s` eased hop back to the same corner and resets the five-minute timer without starting a walk
 - shows a bundled offline cold joke every 40–90 minutes for about 8 seconds while visible and unpaused
