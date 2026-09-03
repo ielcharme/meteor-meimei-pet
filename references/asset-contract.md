@@ -10,6 +10,7 @@ Use this reference for verification, repair, or rebuild work.
 - Rows 0–8 are idle, running-right, running-left, waving, jumping, failed, waiting, task-running, and review.
 - Rows 9–10 contain 16 clockwise look directions in 22.5° steps.
 - `validation.json` records the deterministic v2 atlas validation produced during hatching.
+- Video-guided desktop actions do not replace or repurpose these Codex state rows.
 
 The preview files are review aids, not runtime dependencies:
 
@@ -19,15 +20,25 @@ The preview files are review aids, not runtime dependencies:
 
 ## Desktop companion
 
-The prebuilt app lives at `assets/desktop/妹妹.app` and is an arm64 macOS app. Its source is in `assets/desktop-source/`.
+The prebuilt arm64 app is stored as `assets/desktop/妹妹.app.zip`, so macOS does not index a second runnable copy inside the repository. The installer expands one canonical app at `~/Applications/妹妹.app`. Its source is in `assets/desktop-source/`.
+
+The desktop app loads two atlases:
+
+- `spritesheet.webp`: the validated Codex `1536×2288` atlas
+- `video-actions.webp`: a desktop-only `1536×1664` atlas containing eight complete eight-frame rows keyed from the latest real-dog green-screen footage: head tilt, eating, rolling, waiting, startup, walking left, walking right, and expectant
 
 Behavior:
 
 - transparent floating pet near the bottom of the current screen
-- autonomous left/right walking, idle, waving, jumping, play, and review states
-- reads only `avatar-overlay-mascot-width-px` from `~/.codex/config.toml` and preserves the atlas `192:208` aspect ratio; fallback width is `97 px`
-- uses relaxed motion timing: directional walking is `5.2 fps` at `42 pt/s`, idle is `2 fps`, and playful/review states are slower with longer rests
-- renders running-left from the approved running-right row with a per-frame horizontal mirror that preserves frame order, plus backing-pixel-aligned window movement
+- autonomous real-video left/right walking and waiting, plus head-tilt greeting, eating-based edge emergence, rolling-based lift/drop, startup, review waiting, and expectant states
+- clicking **和妹妹玩** chooses a live-dog action; the paw menu can directly play head tilt, eating, rolling, waiting, startup, and expectant, while **叫妹妹过来** uses the expectant row
+- custom actions use source-appropriate `1.4–5.0 fps` timing; the source MP4 pixels supply the final real-dog appearance and motion, with the green set removed and the eating bowl retained
+- all visible desktop modes and direct drag/edge frames resolve to live-video rows `11–18`; the illustrated Codex atlas remains bundled for Codex compatibility but is never selected as a desktop fallback
+- every non-looping action holds its first frame, reaches and holds its last frame without wrapping, then blends that terminal frame into frame 0 of the incoming action for `0.62 s`
+- uses the repository's small resting width of `97 px`; left walk, right walk, and rolling expand smoothly to `1.5×` while preserving the atlas `192:208` aspect ratio and keeping the full body visible
+- permits only one LaunchServices instance through `LSMultipleInstancesProhibited`; launch with `open` and never `open -n`
+- uses relaxed motion timing: real-video directional walking is `5.0 fps` at `42 pt/s`, real-video waiting is `1.4 fps`, autonomous walking is selected only about 12 percent of ordinary decisions, and most decisions choose a `10–22 s` idle period
+- renders walking-left and walking-right from their own keyed real-video body-motion rows, with tracked baseline normalization and backing-pixel-aligned window movement; because every supplied right-walk frame clips the tail, only the missing tail is completed from mirrored real-tail pixels in the paired left-walk source
 - upward dragging anchors the pet near the scruff with airborne jump poses; release applies a gravity drop back to the screen baseline
 - when manually parked at the left or right bottom edge, five minutes without direct pet interaction triggers a slow retreat that leaves a clickable `24 pt` peek
 - the peeking area has an always-active hover tracker; mouse entry triggers a `0.82 s` eased hop back to the same corner and resets the five-minute timer without starting a walk
@@ -36,7 +47,7 @@ Behavior:
 - a due reminder waits for the three-second typing quiet period before appearing; when it temporarily reveals an edge-hidden pet, the pet returns to that edge after the bubble closes
 - hides during keyboard activity and returns to the same state and location after about `3 s` without a key event
 - hides while the foreground app has a full-screen window or is a known media player; manual menu-bar cinema mode covers windowed browser playback without inspecting its content
-- click to play; drag to reposition; right-click the pet and choose `暂时退出妹妹` to terminate the running app without uninstalling it; menu-bar controls to recall, play, tell a joke, toggle cinema mode, pause, hide, or quit
+- single-click to play after the double-click interval; double-click to show an immediate offline cold joke; move the pointer back and forth by `84 pt` over the pet to trigger eating, followed by a `12 s` petting cooldown; drag to reposition; right-click the pet and choose `暂时退出妹妹` to terminate the running app without uninstalling it; menu-bar controls to recall, play, tell a joke, toggle cinema mode, pause, hide, or quit
 - focus protection may read only anonymous seconds-since-last-key-event, frontmost app identity, and window geometry; it must not record key values or inspect screen, browser, or conversation content
 - no network, telemetry, conversations, credentials, login-item persistence, Accessibility permission, screen recording, or protected-device access
 

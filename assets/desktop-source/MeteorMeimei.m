@@ -9,7 +9,14 @@ typedef NS_ENUM(NSInteger, MMPetMode) {
     MMPetModeWave,
     MMPetModeJump,
     MMPetModePlay,
-    MMPetModeReview
+    MMPetModeReview,
+    MMPetModeCute,
+    MMPetModeEat,
+    MMPetModeBelly,
+    MMPetModeRoll,
+    MMPetModeApproach,
+    MMPetModeStartup,
+    MMPetModeExpectant
 };
 
 typedef struct {
@@ -20,14 +27,44 @@ typedef struct {
 
 static MMAnimation MMAnimationForMode(MMPetMode mode) {
     switch (mode) {
-        case MMPetModeIdle:      return (MMAnimation){0, 6, 2.0};
-        case MMPetModeWalkRight: return (MMAnimation){1, 8, 5.2};
-        case MMPetModeWalkLeft:  return (MMAnimation){1, 8, 5.2};
-        case MMPetModeWave:      return (MMAnimation){3, 4, 2.3};
-        case MMPetModeJump:      return (MMAnimation){4, 5, 3.0};
-        case MMPetModePlay:      return (MMAnimation){7, 6, 2.1};
-        case MMPetModeReview:    return (MMAnimation){8, 6, 1.8};
+        case MMPetModeIdle:      return (MMAnimation){14, 8, 1.4};
+        case MMPetModeWalkRight: return (MMAnimation){17, 8, 5.0};
+        case MMPetModeWalkLeft:  return (MMAnimation){16, 8, 5.0};
+        case MMPetModeWave:      return (MMAnimation){11, 8, 1.6};
+        case MMPetModeJump:      return (MMAnimation){12, 8, 1.6};
+        case MMPetModePlay:      return (MMAnimation){18, 8, 1.5};
+        case MMPetModeReview:    return (MMAnimation){14, 8, 1.4};
+        case MMPetModeCute:      return (MMAnimation){11, 8, 1.6};
+        case MMPetModeEat:       return (MMAnimation){12, 8, 1.6};
+        case MMPetModeBelly:     return (MMAnimation){13, 8, 1.6};
+        case MMPetModeRoll:      return (MMAnimation){13, 8, 1.6};
+        case MMPetModeApproach:  return (MMAnimation){18, 8, 1.5};
+        case MMPetModeStartup:   return (MMAnimation){15, 8, 4.0};
+        case MMPetModeExpectant: return (MMAnimation){18, 8, 1.5};
     }
+}
+
+static BOOL MMAnimationLoops(MMPetMode mode) {
+    switch (mode) {
+        case MMPetModeIdle:
+        case MMPetModeWalkRight:
+        case MMPetModeWalkLeft:
+        case MMPetModeReview:
+            return YES;
+        default:
+            return NO;
+    }
+}
+
+static const NSTimeInterval MMActionEntryHoldDuration = 0.18;
+static const NSTimeInterval MMActionExitHoldDuration = 0.32;
+
+static double MMActionDuration(MMPetMode mode) {
+    MMAnimation animation = MMAnimationForMode(mode);
+    if (MMAnimationLoops(mode)) return (double)animation.frames / animation.fps;
+    return MMActionEntryHoldDuration
+        + (double)(animation.frames - 1) / animation.fps
+        + MMActionExitHoldDuration;
 }
 
 static CGFloat MMRandom(CGFloat minimum, CGFloat maximum) {
@@ -35,23 +72,26 @@ static CGFloat MMRandom(CGFloat minimum, CGFloat maximum) {
     return minimum + (maximum - minimum) * unit;
 }
 
-static CGFloat MMCurrentCodexPetWidth(void) {
-    const CGFloat fallbackWidth = 97.0;
-    NSString *configPath = [NSHomeDirectory() stringByAppendingPathComponent:@".codex/config.toml"];
-    NSString *config = [NSString stringWithContentsOfFile:configPath encoding:NSUTF8StringEncoding error:nil];
-    if (!config) return fallbackWidth;
-
-    for (NSString *line in [config componentsSeparatedByCharactersInSet:NSCharacterSet.newlineCharacterSet]) {
-        NSString *trimmed = [line stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
-        if (![trimmed hasPrefix:@"avatar-overlay-mascot-width-px"]) continue;
-        NSArray<NSString *> *parts = [trimmed componentsSeparatedByString:@"="];
-        if (parts.count < 2) break;
-        CGFloat width = [parts.lastObject stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet].doubleValue;
-        if (width >= 80.0 && width <= 224.0) return width;
-        break;
-    }
-    return fallbackWidth;
+static CGFloat MMDesktopPetWidth(void) {
+    return 97.0;
 }
+
+static CGFloat MMDisplayScaleForMode(MMPetMode mode) {
+    switch (mode) {
+        case MMPetModeWalkRight:
+        case MMPetModeWalkLeft:
+        case MMPetModeBelly:
+        case MMPetModeRoll:
+            return 1.5;
+        default:
+            return 1.0;
+    }
+}
+
+static const NSTimeInterval MMActionTransitionDuration = 0.62;
+static const CGFloat MMPettingDistanceThreshold = 84.0;
+static const NSTimeInterval MMPettingResetInterval = 1.25;
+static const NSTimeInterval MMPettingCooldown = 12.0;
 
 static NSArray<NSString *> *MMColdJokes(void) {
     static NSArray<NSString *> *jokes;
@@ -93,24 +133,40 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
 
 @interface MMPetView : NSView
 @property(nonatomic, strong) NSImage *atlas;
+@property(nonatomic, strong) NSImage *actionAtlas;
 @property(nonatomic) NSInteger row;
 @property(nonatomic) NSInteger column;
 @property(nonatomic) BOOL flippedHorizontally;
+@property(nonatomic) NSInteger previousRow;
+@property(nonatomic) NSInteger previousColumn;
+@property(nonatomic) BOOL previousFlippedHorizontally;
+@property(nonatomic) NSTimeInterval transitionStartedAt;
 @property(nonatomic, copy) void (^onClick)(void);
+@property(nonatomic, copy) void (^onDoubleClick)(void);
+@property(nonatomic, copy) void (^onPet)(void);
 @property(nonatomic, copy) void (^onDrag)(NSPoint point);
 @property(nonatomic, copy) void (^onDragEnd)(void);
 @property(nonatomic, copy) void (^onHover)(void);
 @property(nonatomic, copy) void (^onTemporaryQuit)(void);
 @property(nonatomic, strong) NSTrackingArea *hoverTrackingArea;
 @property(nonatomic) BOOL didDrag;
+@property(nonatomic) NSUInteger pendingClickToken;
+@property(nonatomic) NSPoint lastPetPoint;
+@property(nonatomic) CGFloat pettingDistance;
+@property(nonatomic) NSTimeInterval lastPetMovementAt;
+@property(nonatomic) NSTimeInterval pettingCooldownUntil;
+@property(nonatomic) BOOL hasLastPetPoint;
 @end
 
 @implementation MMPetView
 
-- (instancetype)initWithFrame:(NSRect)frame atlas:(NSImage *)atlas {
+- (instancetype)initWithFrame:(NSRect)frame atlas:(NSImage *)atlas actionAtlas:(NSImage *)actionAtlas {
     self = [super initWithFrame:frame];
     if (self) {
         _atlas = atlas;
+        _actionAtlas = actionAtlas;
+        _row = -1;
+        _previousRow = -1;
         self.wantsLayer = YES;
         self.layer.backgroundColor = NSColor.clearColor.CGColor;
     }
@@ -125,17 +181,60 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
     if (self.hoverTrackingArea) [self removeTrackingArea:self.hoverTrackingArea];
     self.hoverTrackingArea = [[NSTrackingArea alloc]
         initWithRect:NSZeroRect
-             options:NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect
+             options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveAlways | NSTrackingInVisibleRect
                owner:self
             userInfo:nil];
     [self addTrackingArea:self.hoverTrackingArea];
 }
 
 - (void)mouseEntered:(NSEvent *)event {
+    self.hasLastPetPoint = NO;
+    self.pettingDistance = 0;
     if (self.onHover) self.onHover();
 }
 
+- (void)mouseExited:(NSEvent *)event {
+    self.hasLastPetPoint = NO;
+    self.pettingDistance = 0;
+}
+
+- (void)mouseMoved:(NSEvent *)event {
+    if (self.didDrag) return;
+    NSTimeInterval now = NSProcessInfo.processInfo.systemUptime;
+    NSPoint point = [self convertPoint:event.locationInWindow fromView:nil];
+    if (now < self.pettingCooldownUntil) {
+        self.lastPetPoint = point;
+        self.lastPetMovementAt = now;
+        self.hasLastPetPoint = YES;
+        return;
+    }
+    if (!self.hasLastPetPoint || now - self.lastPetMovementAt > MMPettingResetInterval) {
+        self.pettingDistance = 0;
+        self.lastPetPoint = point;
+        self.lastPetMovementAt = now;
+        self.hasLastPetPoint = YES;
+        return;
+    }
+
+    CGFloat distance = hypot(point.x - self.lastPetPoint.x, point.y - self.lastPetPoint.y);
+    if (distance >= 2.0 && distance <= 40.0) self.pettingDistance += distance;
+    self.lastPetPoint = point;
+    self.lastPetMovementAt = now;
+    if (self.pettingDistance >= MMPettingDistanceThreshold) {
+        self.pettingDistance = 0;
+        self.pettingCooldownUntil = now + MMPettingCooldown;
+        if (self.onPet) self.onPet();
+    }
+}
+
 - (void)setRow:(NSInteger)row {
+    if (_row == row) return;
+    if (_row >= 0) {
+        _previousRow = _row;
+        _previousColumn = _column;
+        _previousFlippedHorizontally = _flippedHorizontally;
+        _transitionStartedAt = NSProcessInfo.processInfo.systemUptime;
+    }
     _row = row;
     self.needsDisplay = YES;
 }
@@ -150,31 +249,61 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
     self.needsDisplay = YES;
 }
 
-- (void)drawRect:(NSRect)dirtyRect {
-    [super drawRect:dirtyRect];
-    if (self.atlas.size.width < 1536 || self.atlas.size.height < 2288) return;
-
-    [[NSColor clearColor] setFill];
-    NSRectFillUsingOperation(self.bounds, NSCompositingOperationCopy);
-    NSGraphicsContext.currentContext.imageInterpolation = NSImageInterpolationHigh;
+- (void)drawFrameAtRow:(NSInteger)row
+                column:(NSInteger)column
+               flipped:(BOOL)flipped
+              fraction:(CGFloat)fraction {
+    if (row < 0 || fraction <= 0) return;
+    BOOL usesActionAtlas = row >= 11;
+    NSImage *sourceAtlas = usesActionAtlas ? self.actionAtlas : self.atlas;
+    NSInteger sourceRow = usesActionAtlas ? row - 11 : row;
+    if (sourceAtlas.size.width < 1536 || sourceAtlas.size.height < (sourceRow + 1) * 208) return;
     CGFloat cellWidth = 192;
     CGFloat cellHeight = 208;
-    CGFloat sourceY = self.atlas.size.height - ((CGFloat)self.row + 1) * cellHeight;
-    NSRect source = NSMakeRect((CGFloat)self.column * cellWidth, sourceY, cellWidth, cellHeight);
+    CGFloat sourceY = sourceAtlas.size.height - ((CGFloat)sourceRow + 1) * cellHeight;
+    NSRect source = NSMakeRect((CGFloat)column * cellWidth, sourceY, cellWidth, cellHeight);
     [NSGraphicsContext saveGraphicsState];
-    if (self.flippedHorizontally) {
+    if (flipped) {
         NSAffineTransform *flip = [NSAffineTransform transform];
         [flip translateXBy:NSWidth(self.bounds) yBy:0];
         [flip scaleXBy:-1 yBy:1];
         [flip concat];
     }
-    [self.atlas drawInRect:self.bounds
-                  fromRect:source
-                 operation:NSCompositingOperationSourceOver
-                  fraction:1.0
-            respectFlipped:NO
-                     hints:nil];
+    [sourceAtlas drawInRect:self.bounds
+                   fromRect:source
+                  operation:NSCompositingOperationSourceOver
+                   fraction:fraction
+             respectFlipped:NO
+                      hints:nil];
     [NSGraphicsContext restoreGraphicsState];
+}
+
+- (void)drawRect:(NSRect)dirtyRect {
+    [super drawRect:dirtyRect];
+    [[NSColor clearColor] setFill];
+    NSRectFillUsingOperation(self.bounds, NSCompositingOperationCopy);
+    NSGraphicsContext.currentContext.imageInterpolation = NSImageInterpolationHigh;
+
+    CGFloat progress = 1.0;
+    if (self.previousRow >= 0) {
+        NSTimeInterval elapsed = NSProcessInfo.processInfo.systemUptime - self.transitionStartedAt;
+        progress = MIN(1.0, MAX(0.0, elapsed / MMActionTransitionDuration));
+        progress = progress * progress * (3.0 - 2.0 * progress);
+    }
+    if (progress < 1.0) {
+        [self drawFrameAtRow:self.previousRow
+                     column:self.previousColumn
+                    flipped:self.previousFlippedHorizontally
+                   fraction:1.0 - progress];
+        [self drawFrameAtRow:self.row column:0 flipped:self.flippedHorizontally fraction:progress];
+        self.needsDisplay = YES;
+    } else {
+        self.previousRow = -1;
+        [self drawFrameAtRow:self.row
+                     column:self.column
+                    flipped:self.flippedHorizontally
+                   fraction:1.0];
+    }
 }
 
 - (void)mouseDown:(NSEvent *)event {
@@ -183,14 +312,26 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
 
 - (void)mouseDragged:(NSEvent *)event {
     self.didDrag = YES;
+    self.pendingClickToken += 1;
     if (self.onDrag) self.onDrag(NSEvent.mouseLocation);
 }
 
 - (void)mouseUp:(NSEvent *)event {
     if (self.didDrag) {
         if (self.onDragEnd) self.onDragEnd();
-    } else if (self.onClick) {
-        self.onClick();
+    } else if (event.clickCount >= 2) {
+        self.pendingClickToken += 1;
+        if (self.onDoubleClick) self.onDoubleClick();
+    } else {
+        NSUInteger token = ++self.pendingClickToken;
+        __weak typeof(self) weakSelf = self;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(NSEvent.doubleClickInterval * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (strongSelf && strongSelf.pendingClickToken == token && strongSelf.onClick) {
+                strongSelf.onClick();
+            }
+        });
     }
     self.didDrag = NO;
 }
@@ -281,6 +422,10 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
 @property(nonatomic, strong) NSNumber *targetX;
 @property(nonatomic) CGFloat baseY;
 @property(nonatomic) NSSize petSize;
+@property(nonatomic) CGFloat currentDisplayScale;
+@property(nonatomic) CGFloat displayScaleFrom;
+@property(nonatomic) CGFloat displayScaleTo;
+@property(nonatomic) NSTimeInterval displayScaleStartedAt;
 @property(nonatomic) CGFloat dropVelocity;
 @property(nonatomic) CGFloat edgeEmergenceStartX;
 @property(nonatomic) NSInteger parkedEdge;
@@ -302,15 +447,19 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
 @property(nonatomic, copy) void (^onPauseChanged)(BOOL paused);
 @property(nonatomic, copy) void (^onVisibilityChanged)(BOOL hidden);
 @property(nonatomic, copy) void (^onCinemaModeChanged)(BOOL enabled);
-- (instancetype)initWithAtlas:(NSImage *)atlas;
+- (instancetype)initWithAtlas:(NSImage *)atlas actionAtlas:(NSImage *)actionAtlas;
 - (void)togglePause;
 - (void)toggleVisibility;
 - (void)playNow;
+- (void)playMode:(MMPetMode)mode;
 - (void)bringToMouse;
 - (void)tellJokeNow;
+- (void)petNow;
 - (void)hoverReveal;
 - (void)toggleCinemaMode;
 - (void)dragFinished;
+- (void)updateDisplayScale:(NSTimeInterval)now;
+- (void)setDisplayScaleImmediately:(CGFloat)scale;
 @end
 
 @implementation MMPetController
@@ -331,23 +480,28 @@ static const NSTimeInterval MMFocusProtectionInterval = 0.4;
 static const NSTimeInterval MMTypingQuietPeriod = 3.0;
 static const double MMJumpDuration = 1.8;
 
-- (instancetype)initWithAtlas:(NSImage *)atlas {
+- (instancetype)initWithAtlas:(NSImage *)atlas actionAtlas:(NSImage *)actionAtlas {
     self = [super init];
     if (self) {
-        CGFloat petWidth = MMCurrentCodexPetWidth();
+        CGFloat petWidth = MMDesktopPetWidth();
         _petSize = NSMakeSize(petWidth, petWidth * 208.0 / 192.0);
+        _currentDisplayScale = 1.0;
+        _displayScaleFrom = 1.0;
+        _displayScaleTo = 1.0;
+        _displayScaleStartedAt = NSProcessInfo.processInfo.systemUptime;
         NSRect frame = NSMakeRect(0, 0, _petSize.width, _petSize.height);
         _panel = [[MMPetPanel alloc] initWithContentRect:frame
                                               styleMask:NSWindowStyleMaskBorderless | NSWindowStyleMaskNonactivatingPanel
                                                 backing:NSBackingStoreBuffered
                                                   defer:NO];
-        _petView = [[MMPetView alloc] initWithFrame:frame atlas:atlas];
+        _petView = [[MMPetView alloc] initWithFrame:frame atlas:atlas actionAtlas:actionAtlas];
         _panel.contentView = _petView;
         _panel.opaque = NO;
         _panel.backgroundColor = NSColor.clearColor;
         _panel.hasShadow = NO;
         _panel.level = NSFloatingWindowLevel;
         _panel.ignoresMouseEvents = NO;
+        _panel.acceptsMouseMovedEvents = YES;
         _panel.hidesOnDeactivate = NO;
         _panel.collectionBehavior = NSWindowCollectionBehaviorCanJoinAllSpaces | NSWindowCollectionBehaviorFullScreenAuxiliary;
 
@@ -368,6 +522,8 @@ static const double MMJumpDuration = 1.8;
 
         __weak typeof(self) weakSelf = self;
         _petView.onClick = ^{ [weakSelf playNow]; };
+        _petView.onDoubleClick = ^{ [weakSelf tellJokeNow]; };
+        _petView.onPet = ^{ [weakSelf petNow]; };
         _petView.onDrag = ^(NSPoint point) { [weakSelf dragTo:point]; };
         _petView.onDragEnd = ^{ [weakSelf dragFinished]; };
         _petView.onHover = ^{ [weakSelf hoverReveal]; };
@@ -375,7 +531,7 @@ static const double MMJumpDuration = 1.8;
 
         [self placeNearMouse];
         [_panel orderFrontRegardless];
-        [self enterMode:MMPetModeIdle duration:1.2];
+        [self enterMode:MMPetModeStartup duration:MMActionDuration(MMPetModeStartup)];
         _lastTick = NSProcessInfo.processInfo.systemUptime;
         _lastInteractionAt = _lastTick;
         [self scheduleNextJokeFrom:_lastTick];
@@ -417,15 +573,17 @@ static const double MMJumpDuration = 1.8;
 }
 
 - (void)playNow {
+    MMPetMode choices[] = { MMPetModeCute, MMPetModeEat, MMPetModeRoll, MMPetModeExpectant };
+    [self playMode:choices[arc4random_uniform(4)]];
+}
+
+- (void)playMode:(MMPetMode)mode {
     if (self.petHidden) return;
     [self noteInteraction];
     [self clearEdgeStateAndReveal];
     self.paused = NO;
     if (self.onPauseChanged) self.onPauseChanged(NO);
-    uint32_t choice = arc4random_uniform(3);
-    MMPetMode next = choice == 0 ? MMPetModeWave : (choice == 1 ? MMPetModeJump : MMPetModePlay);
-    double duration = next == MMPetModeJump ? MMJumpDuration : (next == MMPetModeWave ? 2.4 : 3.2);
-    [self enterMode:next duration:duration];
+    [self enterMode:mode duration:MMActionDuration(mode)];
 }
 
 - (void)bringToMouse {
@@ -435,13 +593,18 @@ static const double MMJumpDuration = 1.8;
     if (self.onVisibilityChanged) self.onVisibilityChanged(NO);
     [self placeNearMouse];
     if (!self.focusProtected) [self.panel orderFrontRegardless];
-    [self enterMode:MMPetModeWave duration:2.4];
+    [self enterMode:MMPetModeApproach duration:MMActionDuration(MMPetModeApproach)];
 }
 
 - (void)tellJokeNow {
     if (self.petHidden || self.edgeHidden || self.edgeRetreating || self.edgeEmerging) [self bringToMouse];
     [self noteInteraction];
     if (!self.focusProtected) [self showRandomJoke];
+}
+
+- (void)petNow {
+    if (self.petHidden || self.focusProtected || self.dragging || self.edgeEmerging) return;
+    [self playMode:MMPetModeEat];
 }
 
 - (void)toggleCinemaMode {
@@ -461,7 +624,7 @@ static const double MMJumpDuration = 1.8;
     self.edgeEmergenceElapsed = 0;
     self.edgeEmergenceStartX = self.panel.frame.origin.x;
     self.animationElapsed = 0;
-    self.petView.row = 4;
+    self.petView.row = 12;
     self.petView.column = 0;
     self.petView.flippedHorizontally = NO;
     if (self.onPauseChanged) self.onPauseChanged(NO);
@@ -471,6 +634,7 @@ static const double MMJumpDuration = 1.8;
     NSTimeInterval now = NSProcessInfo.processInfo.systemUptime;
     NSTimeInterval delta = MIN(now - self.lastTick, 0.1);
     self.lastTick = now;
+    [self updateDisplayScale:now];
     [self updateFocusProtection:now];
     if (self.bubblePanel.visible && now >= self.bubbleHideAt) [self hideBubble];
     [self maybeShowWellnessReminder:now];
@@ -525,6 +689,7 @@ static const double MMJumpDuration = 1.8;
 }
 
 - (void)updateWalking:(NSTimeInterval)delta {
+    if (self.animationElapsed < 0) return;
     NSScreen *screen = [self currentScreen];
     if (!screen || !self.targetX) {
         [self chooseNextBehavior:NO];
@@ -533,7 +698,7 @@ static const double MMJumpDuration = 1.8;
     CGFloat direction = self.mode == MMPetModeWalkRight ? 1 : -1;
     CGFloat x = self.panel.frame.origin.x + direction * MMWalkSpeed * delta;
     CGFloat minX = NSMinX(screen.visibleFrame);
-    CGFloat maxX = NSMaxX(screen.visibleFrame) - self.petSize.width;
+    CGFloat maxX = NSMaxX(screen.visibleFrame) - NSWidth(self.panel.frame);
     x = MIN(MAX(x, minX), maxX);
     x = round(x * screen.backingScaleFactor) / screen.backingScaleFactor;
     [self.panel setFrameOrigin:NSMakePoint(x, self.baseY)];
@@ -554,19 +719,25 @@ static const double MMJumpDuration = 1.8;
     self.targetX = nil;
     if (forceRest) {
         uint32_t restRoll = arc4random_uniform(100);
-        if (restRoll < 62) [self enterMode:MMPetModeIdle duration:MMRandom(4.5, 9.0)];
-        else if (restRoll < 78) [self enterMode:MMPetModeWave duration:2.4];
-        else if (restRoll < 90) [self enterMode:MMPetModePlay duration:3.2];
-        else [self enterMode:MMPetModeReview duration:3.6];
+        if (restRoll < 84) [self enterMode:MMPetModeIdle duration:MMRandom(8.0, 16.0)];
+        else if (restRoll < 88) [self enterMode:MMPetModeCute duration:MMActionDuration(MMPetModeCute)];
+        else if (restRoll < 91) [self enterMode:MMPetModeEat duration:MMActionDuration(MMPetModeEat)];
+        else if (restRoll < 94) [self enterMode:MMPetModeBelly duration:MMActionDuration(MMPetModeBelly)];
+        else if (restRoll < 96) [self enterMode:MMPetModeRoll duration:MMActionDuration(MMPetModeRoll)];
+        else if (restRoll < 98) [self enterMode:MMPetModeWave duration:MMActionDuration(MMPetModeWave)];
+        else [self enterMode:MMPetModeReview duration:MMRandom(8.0, 14.0)];
         return;
     }
     uint32_t roll = arc4random_uniform(100);
-    if (roll < 22) [self beginWalk];
-    else if (roll < 72) [self enterMode:MMPetModeIdle duration:MMRandom(5.0, 11.0)];
-    else if (roll < 82) [self enterMode:MMPetModeWave duration:2.4];
-    else if (roll < 88) [self enterMode:MMPetModeJump duration:MMJumpDuration];
-    else if (roll < 96) [self enterMode:MMPetModePlay duration:3.2];
-    else [self enterMode:MMPetModeReview duration:3.6];
+    if (roll < 12) [self beginWalk];
+    else if (roll < 86) [self enterMode:MMPetModeIdle duration:MMRandom(10.0, 22.0)];
+    else if (roll < 89) [self enterMode:MMPetModeCute duration:MMActionDuration(MMPetModeCute)];
+    else if (roll < 92) [self enterMode:MMPetModeEat duration:MMActionDuration(MMPetModeEat)];
+    else if (roll < 95) [self enterMode:MMPetModeBelly duration:MMActionDuration(MMPetModeBelly)];
+    else if (roll < 97) [self enterMode:MMPetModeRoll duration:MMActionDuration(MMPetModeRoll)];
+    else if (roll < 98) [self enterMode:MMPetModeWave duration:MMActionDuration(MMPetModeWave)];
+    else if (roll < 99) [self enterMode:MMPetModeJump duration:MMJumpDuration];
+    else [self enterMode:MMPetModeReview duration:MMRandom(8.0, 14.0)];
 }
 
 - (void)beginWalk {
@@ -574,8 +745,10 @@ static const double MMJumpDuration = 1.8;
     if (!screen) return;
     self.baseY = NSMinY(screen.visibleFrame) + 6;
     CGFloat minX = NSMinX(screen.visibleFrame);
-    CGFloat maxX = NSMaxX(screen.visibleFrame) - self.petSize.width;
-    CGFloat currentX = MIN(MAX(self.panel.frame.origin.x, minX), maxX);
+    CGFloat walkWidth = self.petSize.width * MMDisplayScaleForMode(MMPetModeWalkRight);
+    CGFloat maxX = NSMaxX(screen.visibleFrame) - walkWidth;
+    CGFloat currentX = NSMidX(self.panel.frame) - walkWidth / 2.0;
+    currentX = MIN(MAX(currentX, minX), maxX);
     CGFloat leftRoom = currentX - minX;
     CGFloat rightRoom = maxX - currentX;
     BOOL goRight;
@@ -598,19 +771,66 @@ static const double MMJumpDuration = 1.8;
 
 - (void)enterMode:(MMPetMode)mode duration:(double)duration {
     self.mode = mode;
-    self.animationElapsed = 0;
-    self.behaviorRemaining = duration;
+    self.displayScaleFrom = self.currentDisplayScale;
+    self.displayScaleTo = MMDisplayScaleForMode(mode);
+    self.displayScaleStartedAt = NSProcessInfo.processInfo.systemUptime;
+    self.animationElapsed = -MMActionTransitionDuration;
+    self.behaviorRemaining = duration + MMActionTransitionDuration;
     [self applyAnimationFrame];
     if (mode != MMPetModeJump) {
         [self.panel setFrameOrigin:NSMakePoint(self.panel.frame.origin.x, self.baseY)];
     }
 }
 
+- (void)updateDisplayScale:(NSTimeInterval)now {
+    CGFloat target = self.displayScaleTo;
+    CGFloat start = self.displayScaleFrom;
+    double progress = MIN(1.0, MAX(0.0, (now - self.displayScaleStartedAt) / MMActionTransitionDuration));
+    progress = progress * progress * (3.0 - 2.0 * progress);
+    CGFloat scale = start + (target - start) * progress;
+    if (fabs(scale - self.currentDisplayScale) < 0.0001) return;
+
+    NSRect oldFrame = self.panel.frame;
+    NSSize newSize = NSMakeSize(self.petSize.width * scale, self.petSize.height * scale);
+    CGFloat x;
+    if (self.edgeHidden && self.parkedEdge < 0) {
+        x = NSMaxX(oldFrame) - newSize.width;
+    } else if (self.edgeHidden && self.parkedEdge > 0) {
+        x = NSMinX(oldFrame);
+    } else {
+        x = NSMidX(oldFrame) - newSize.width / 2.0;
+    }
+    NSRect newFrame = NSMakeRect(x, NSMinY(oldFrame), newSize.width, newSize.height);
+    [self.panel setFrame:newFrame display:YES];
+    self.petView.frame = NSMakeRect(0, 0, newSize.width, newSize.height);
+    self.currentDisplayScale = scale;
+}
+
+- (void)setDisplayScaleImmediately:(CGFloat)scale {
+    NSRect oldFrame = self.panel.frame;
+    NSSize newSize = NSMakeSize(self.petSize.width * scale, self.petSize.height * scale);
+    CGFloat x = NSMidX(oldFrame) - newSize.width / 2.0;
+    [self.panel setFrame:NSMakeRect(x, NSMinY(oldFrame), newSize.width, newSize.height) display:YES];
+    self.petView.frame = NSMakeRect(0, 0, newSize.width, newSize.height);
+    self.currentDisplayScale = scale;
+    self.displayScaleFrom = scale;
+    self.displayScaleTo = scale;
+    self.displayScaleStartedAt = NSProcessInfo.processInfo.systemUptime;
+}
+
 - (void)applyAnimationFrame {
     MMAnimation animation = MMAnimationForMode(self.mode);
     self.petView.row = animation.row;
-    self.petView.column = ((NSInteger)floor(self.animationElapsed * animation.fps)) % animation.frames;
-    self.petView.flippedHorizontally = self.mode == MMPetModeWalkLeft;
+    double activeElapsed = MAX(0.0, self.animationElapsed);
+    NSInteger column;
+    if (MMAnimationLoops(self.mode)) {
+        column = ((NSInteger)floor(activeElapsed * animation.fps)) % animation.frames;
+    } else {
+        double frameElapsed = MAX(0.0, activeElapsed - MMActionEntryHoldDuration);
+        column = MIN(animation.frames - 1, (NSInteger)floor(frameElapsed * animation.fps));
+    }
+    self.petView.column = column;
+    self.petView.flippedHorizontally = NO;
 }
 
 - (void)placeNearMouse {
@@ -620,6 +840,10 @@ static const double MMJumpDuration = 1.8;
     self.baseY = NSMinY(screen.visibleFrame) + 6;
     CGFloat x = MIN(MAX(mouse.x - self.petSize.width / 2, NSMinX(screen.visibleFrame)), NSMaxX(screen.visibleFrame) - self.petSize.width);
     [self.panel setFrame:NSMakeRect(x, self.baseY, self.petSize.width, self.petSize.height) display:YES];
+    self.petView.frame = NSMakeRect(0, 0, self.petSize.width, self.petSize.height);
+    self.currentDisplayScale = 1.0;
+    self.displayScaleFrom = 1.0;
+    self.displayScaleTo = 1.0;
     [self updateBubblePosition];
 }
 
@@ -630,6 +854,7 @@ static const double MMJumpDuration = 1.8;
         [self noteInteraction];
         [self clearEdgeStateAndReveal];
         [self hideBubble];
+        [self setDisplayScaleImmediately:1.0];
     }
     self.dragging = YES;
     self.dropping = NO;
@@ -649,10 +874,10 @@ static const double MMJumpDuration = 1.8;
     self.liftedDuringDrag = lifted;
     self.petView.flippedHorizontally = NO;
     if (lifted) {
-        self.petView.row = 4;
-        self.petView.column = 1 + ((NSInteger)floor(NSProcessInfo.processInfo.systemUptime * 1.6) % 3);
+        self.petView.row = 13;
+        self.petView.column = 1 + ((NSInteger)floor(NSProcessInfo.processInfo.systemUptime * 1.6) % 6);
     } else {
-        self.petView.row = 0;
+        self.petView.row = 14;
         self.petView.column = 0;
     }
 }
@@ -666,8 +891,8 @@ static const double MMJumpDuration = 1.8;
         self.dropVelocity = 0;
         self.mode = MMPetModeJump;
         self.behaviorRemaining = MMJumpDuration;
-        self.petView.row = 4;
-        self.petView.column = 3;
+        self.petView.row = 13;
+        self.petView.column = 6;
         self.petView.flippedHorizontally = NO;
     } else {
         [self settleAfterDrag];
@@ -685,8 +910,8 @@ static const double MMJumpDuration = 1.8;
         [self settleAfterDrag];
         return;
     }
-    self.petView.row = 4;
-    self.petView.column = y - self.baseY > self.petSize.height * 0.45 ? 2 : 3;
+    self.petView.row = 13;
+    self.petView.column = y - self.baseY > self.petSize.height * 0.45 ? 5 : 6;
     self.petView.flippedHorizontally = NO;
     [self.panel setFrameOrigin:NSMakePoint(self.panel.frame.origin.x, y)];
 }
@@ -756,8 +981,8 @@ static const double MMJumpDuration = 1.8;
     CGFloat y = self.baseY + sin(progress * M_PI) * MMEdgeEmergenceHopHeight;
     x = round(x * screen.backingScaleFactor) / screen.backingScaleFactor;
     y = round(y * screen.backingScaleFactor) / screen.backingScaleFactor;
-    self.petView.row = 4;
-    self.petView.column = MIN(4, (NSInteger)floor(progress * 5.0));
+    self.petView.row = 12;
+    self.petView.column = MIN(7, (NSInteger)floor(progress * 8.0));
     self.petView.flippedHorizontally = NO;
     [self.panel setFrameOrigin:NSMakePoint(x, y)];
 
@@ -977,16 +1202,18 @@ static const double MMJumpDuration = 1.8;
     [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
     NSURL *atlasURL = [NSBundle.mainBundle URLForResource:@"spritesheet" withExtension:@"webp"];
     NSImage *atlas = atlasURL ? [[NSImage alloc] initWithContentsOfURL:atlasURL] : nil;
-    if (!atlas) {
+    NSURL *actionAtlasURL = [NSBundle.mainBundle URLForResource:@"video-actions" withExtension:@"webp"];
+    NSImage *actionAtlas = actionAtlasURL ? [[NSImage alloc] initWithContentsOfURL:actionAtlasURL] : nil;
+    if (!atlas || !actionAtlas) {
         NSAlert *alert = [NSAlert new];
         alert.messageText = @"妹妹没有找到她的动画图集";
-        alert.informativeText = @"请确认 spritesheet.webp 位于应用 Resources 目录。";
+        alert.informativeText = @"请确认 spritesheet.webp 和 video-actions.webp 位于应用 Resources 目录。";
         [alert runModal];
         [NSApp terminate:nil];
         return;
     }
 
-    self.controller = [[MMPetController alloc] initWithAtlas:atlas];
+    self.controller = [[MMPetController alloc] initWithAtlas:atlas actionAtlas:actionAtlas];
     [self configureStatusItem];
 }
 
@@ -1002,6 +1229,16 @@ static const double MMJumpDuration = 1.8;
     [menu addItem:NSMenuItem.separatorItem];
     [menu addItem:[self item:@"叫妹妹过来" action:@selector(bringPet:) key:@"b"]];
     [menu addItem:[self item:@"和妹妹玩" action:@selector(playWithPet:) key:@"p"]];
+    NSMenuItem *actionsItem = [[NSMenuItem alloc] initWithTitle:@"选择妹妹的动作" action:nil keyEquivalent:@""];
+    NSMenu *actionsMenu = [NSMenu new];
+    [actionsMenu addItem:[self item:@"歪头杀" action:@selector(playCute:) key:@""]];
+    [actionsMenu addItem:[self item:@"吃饭" action:@selector(playEat:) key:@""]];
+    [actionsMenu addItem:[self item:@"打滚" action:@selector(playRoll:) key:@""]];
+    [actionsMenu addItem:[self item:@"等待" action:@selector(playWaiting:) key:@""]];
+    [actionsMenu addItem:[self item:@"开机启动" action:@selector(playStartup:) key:@""]];
+    [actionsMenu addItem:[self item:@"一脸期待" action:@selector(playExpectant:) key:@""]];
+    actionsItem.submenu = actionsMenu;
+    [menu addItem:actionsItem];
     [menu addItem:[self item:@"妹妹，讲个冷笑话" action:@selector(tellJoke:) key:@"j"]];
     self.cinemaItem = [self item:@"开启观影模式" action:@selector(toggleCinemaMode:) key:@"m"];
     [menu addItem:self.cinemaItem];
@@ -1035,6 +1272,12 @@ static const double MMJumpDuration = 1.8;
 
 - (void)bringPet:(id)sender { [self.controller bringToMouse]; }
 - (void)playWithPet:(id)sender { [self.controller playNow]; }
+- (void)playCute:(id)sender { [self.controller playMode:MMPetModeCute]; }
+- (void)playEat:(id)sender { [self.controller playMode:MMPetModeEat]; }
+- (void)playRoll:(id)sender { [self.controller playMode:MMPetModeRoll]; }
+- (void)playWaiting:(id)sender { [self.controller playMode:MMPetModeIdle]; }
+- (void)playStartup:(id)sender { [self.controller playMode:MMPetModeStartup]; }
+- (void)playExpectant:(id)sender { [self.controller playMode:MMPetModeExpectant]; }
 - (void)tellJoke:(id)sender { [self.controller tellJokeNow]; }
 - (void)toggleCinemaMode:(id)sender { [self.controller toggleCinemaMode]; }
 - (void)togglePause:(id)sender { [self.controller togglePause]; }
@@ -1046,12 +1289,12 @@ static const double MMJumpDuration = 1.8;
 int main(int argc, const char *argv[]) {
     @autoreleasepool {
         if ([NSProcessInfo.processInfo.arguments containsObject:@"--print-pet-size"]) {
-            CGFloat width = MMCurrentCodexPetWidth();
+            CGFloat width = MMDesktopPetWidth();
             printf("%.0fx%.2f\n", width, width * 208.0 / 192.0);
             return 0;
         }
         if ([NSProcessInfo.processInfo.arguments containsObject:@"--print-behavior-config"]) {
-            printf("walk_fps=5.2 walk_speed=42 idle_fps=2.0 play_fps=2.1 corner_hide_seconds=300 hover_reveal=jump-to-corner focus_protection=typing-fullscreen-media cinema_mode=manual wellness_interval_seconds=3600 wellness_display_seconds=10 work_active_window_seconds=300 right_click_quit=temporary left_source=running-right-mirrored\n");
+            printf("single_instance=true fixed_pet_width=97 enlarged_action_scale=1.5 enlarged_actions=walk-left-walk-right-roll walk_fps=5.0 walk_speed=42 idle_fps=1.4 play_fps=1.5 custom_action_fps=1.4-5.0 custom_action_rows=11-18 custom_action_source=keyed-live-video video_actions=head-tilt-eating-roll-waiting-startup-walk-left-walk-right-expectant illustrated_fallback=false action_transition=tail-to-head-crossfade transition_seconds=0.62 endpoint_completion=entry-hold-exit-hold-clamped-last-frame double_click=cold-joke petting=eating petting_distance_px=84 petting_cooldown_seconds=12 automatic_behavior=calm corner_hide_seconds=300 hover_reveal=eating-to-corner focus_protection=typing-fullscreen-media cinema_mode=manual wellness_interval_seconds=3600 wellness_display_seconds=10 work_active_window_seconds=300 right_click_quit=temporary left_source=keyed-live-video right_source=keyed-live-video-with-real-tail-completion approach_trigger=expectant\n");
             return 0;
         }
         NSApplication *app = NSApplication.sharedApplication;

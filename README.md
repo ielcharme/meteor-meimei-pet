@@ -37,12 +37,17 @@ This repository contains:
 
 #### A small companion that can play
 
-- Walks left and right, rests, waves, jumps, and plays at a relaxed pace.
-- Reacts when clicked.
+- Walks left and right, rests, greets, plays, and asks for attention at a relaxed pace.
+- Includes eight desktop-only actions cut directly from the latest real border-collie green-screen footage: head tilt, eating, rolling over, waiting, startup, walking left, walking right, and an expectant look.
+- Greeting uses the head-tilt clip; edge emergence uses eating; upward dragging and dropping use rolling; focused review uses waiting. Startup plays once when the app opens.
+- Changes actions through completed endpoint holds and a gentle crossfade instead of a hard cut.
+- Single-click Meimei for a playful action; double-click her to hear an offline cold joke immediately.
+- Move the pointer back and forth over her body to pet her; after recognizing the petting gesture, she plays the eating action. A short cooldown prevents accidental repeats.
 - When dragged upward, Meimei switches to a “lifted gently by the scruff” pose and drops naturally when released.
 - When parked in a bottom corner and ignored for five minutes, she retreats into the screen edge.
 - Hover over the visible edge of her body and she jumps back out to the same corner.
-- Occasionally tells a bundled offline cold joke in a speech bubble.
+- Occasionally tells a bundled offline cold joke in a speech bubble, even without interaction.
+- Spends much longer resting and is less likely to switch into an autonomous action, so she feels calm rather than busy.
 
 #### Long-work rest and water reminders
 
@@ -88,6 +93,7 @@ After launch, a paw icon appears in the macOS menu bar. Its menu can:
 
 - Call Meimei to the current screen
 - Play with Meimei
+- Choose a specific action: head tilt, eat, roll, wait, startup, or expectant look
 - Ask for a cold joke
 - Enable or disable Cinema Mode
 - Pause walking
@@ -152,11 +158,31 @@ The Skill verifies the package and shows the resolved destination before writing
 
 ### Size and animation
 
-The desktop app reads `avatar-overlay-mascot-width-px` from `~/.codex/config.toml` so Meimei can match the current Codex pet width 1:1. The fallback width is `97 px`, with height derived from the original `192:208` cell ratio.
+The desktop app keeps Meimei at the repository's small `97 px` resting width, with height derived from the original `192:208` cell ratio. Walking left, walking right, and rolling expand smoothly to `1.5×` from the bottom center so her complete body stays visible instead of being visually reduced. It also prohibits multiple running instances, so opening Meimei again reuses the one already on screen.
 
-- Leftward walking is a frame-order-preserving mirror of the approved rightward gait.
-- Walking runs at `5.2 fps`, with backing-pixel alignment to reduce small-size jitter.
-- Idle, playful, and review actions use slower timing and longer rests.
+- Leftward and rightward movement keep their own source-body motion. Because every frame of the supplied right-walk clip cuts off the tail, only the missing tail is completed frame by frame from mirrored real-tail pixels in the paired left-walk clip.
+- Walking runs at `5.0 fps`, with tracked baseline normalization and backing-pixel alignment to reduce small-size jitter.
+- Real-dog waiting runs at `1.4 fps`; other non-walking actions remain deliberately calm.
+- The eight real-dog actions run at `1.4–5.0 fps` and live in a separate desktop-only atlas. Every visible desktop state now uses this real-dog atlas; the illustrated atlas is no longer used as a fallback. The validated Codex `8×11` atlas remains unchanged.
+- One-shot actions hold their first and last frames instead of wrapping abruptly back to frame 1. Every action change then blends the outgoing terminal frame into the incoming head frame for `0.62 s` before the new animation continues.
+- Autonomous walks and playful actions are deliberately uncommon, with `10–22 s` resting periods between most decisions.
+
+<details>
+<summary>View the eight desktop action previews</summary>
+
+| Head tilt | Eating | Rolling | Waiting |
+| --- | --- | --- | --- |
+| ![Meimei tilting her head](assets/desktop-preview/head-tilt.gif) | ![Meimei eating](assets/desktop-preview/eating.gif) | ![Meimei rolling](assets/desktop-preview/roll.gif) | ![Meimei waiting](assets/desktop-preview/waiting.gif) |
+
+| Startup | Walking left | Walking right | Expectant look |
+| --- | --- | --- | --- |
+| ![Meimei starting up](assets/desktop-preview/startup.gif) | ![Meimei walking left](assets/desktop-preview/walk-left.gif) | ![Meimei walking right](assets/desktop-preview/walk-right.gif) | ![Meimei looking expectant](assets/desktop-preview/expectant.gif) |
+
+The source MP4 files provide the final dog pixels and real motion. Their green backgrounds are removed frame by frame. The missing right-walk tail is reconstructed locally from the paired real left-walk tail; no online generation service is used. The app contains only the compact transparent action atlas, while the original videos are not bundled or uploaded.
+
+![Right-walk tail completion QA](assets/desktop-preview/walk-right-tail-completion.png)
+
+</details>
 
 <details>
 <summary>View the complete animation atlas</summary>
@@ -197,7 +223,7 @@ desktop-pet-dog/
 ├── agents/openai.yaml               # Skill display metadata and default prompt
 ├── assets/
 │   ├── pet/                         # Codex v2 atlas, manifest, and QA previews
-│   ├── desktop/妹妹.app             # Prebuilt Apple Silicon app
+│   ├── desktop/妹妹.app.zip         # Prebuilt Apple Silicon app archive
 │   └── desktop-source/              # Reviewable Objective-C source
 ├── references/asset-contract.md     # Animation, size, and behavior contract
 └── scripts/
@@ -263,12 +289,17 @@ No open-source license is currently attached. Public visibility does not grant p
 
 #### 会自己玩耍的小陪伴
 
-- 用松弛的节奏左右散步、休息、挥爪、跳跃和玩耍。
-- 点击妹妹会触发互动动作。
+- 用松弛的节奏左右散步、休息、打招呼、玩耍和期待互动。
+- 直接从最新真实边牧绿幕视频中抠出八个桌面专属动作：歪头杀、吃饭、打滚、等待、开机启动、向左走、向右走和一脸期待。
+- 打招呼使用歪头杀；从边框跳出使用吃饭；向上拖动、悬空和放下使用打滚；专注查看使用等待。App 打开时会完整播放一次开机启动。
+- 不同动作会先完整保留首帧和尾帧，再使用柔和的“上一动作尾帧 → 下一动作首帧”过渡，不再硬切。
+- 单击妹妹会触发互动动作；双击妹妹会马上讲一个本地冷笑话。
+- 在妹妹身上来回移动鼠标，就像抚摸她一样；识别到抚摸后会播放吃饭动作，并设有短暂冷却，避免误触后连续播放。
 - 向上拖动时，她会切换成“被轻轻拎着后颈”的悬空姿势；松手后自然落回桌面。
 - 把她放在屏幕左下角或右下角，5 分钟没有互动后，她会躲进屏幕边框。
 - 鼠标放到露在边框外的部分时，她会跳出来并停在原来的桌角。
-- 偶尔用桌面气泡讲一个内置的本地冷笑话。
+- 即使没有互动，她也会偶尔用桌面气泡讲一个内置的本地冷笑话。
+- 自动散步和玩耍的概率已经降低，大部分时间会安静地休息，不会显得一直很忙。
 
 #### 长时间工作时提醒休息和喝水
 
@@ -314,6 +345,7 @@ open "$HOME/Applications/妹妹.app"
 
 - 叫妹妹过来
 - 和妹妹玩
+- 指定妹妹歪头、吃饭、打滚、等待、开机启动或一脸期待
 - 让妹妹讲冷笑话
 - 开启或退出观影模式
 - 暂停散步
@@ -378,11 +410,31 @@ Skill 会先验证资源，并在写入仓库外的位置之前显示实际安�
 
 ### 大小与动画
 
-桌面 App 会读取 `~/.codex/config.toml` 中的 `avatar-overlay-mascot-width-px`，让妹妹与 Codex 当前宠物宽度保持 1:1。没有该设置时，默认宽度为 `97 px`，高度按照原始 `192:208` 单元格比例计算。
+桌面 App 的待机尺寸仍是仓库同款的小尺寸：宽 `97 px`，高度按原始 `192:208` 单元格比例计算。向左走、向右走和打滚时，会以脚底中央为锚点平滑放大到 `1.5 倍`，完整身体不会因横向动作而显得缩小。App 同时禁止重复运行；再次打开妹妹时，会继续使用屏幕上唯一的那一只。
 
-- 向左散步使用已经确认的向右步态逐帧镜像，保持原始帧顺序。
-- 步行速度为 `5.2 fps`，并对齐屏幕像素，减少小尺寸移动时的顿挫。
-- 待机、玩耍和检查动作采用更慢节奏，并穿插更长休息时间。
+- 向左走和向右走保留各自素材中的身体动作。由于成片8每一帧都截断了尾巴，程序只使用成片7中真实尾巴的镜像画面，逐帧补齐成片8缺失的尾巴。
+- 步行速度为 `5.0 fps`，并用基线跟踪和屏幕像素对齐减少小尺寸移动时的顿挫。
+- 真实等待动作使用 `1.4 fps`；其他非步行动作也保持比较松弛的节奏。
+- 八个真实狗狗动作使用 `1.4–5.0 fps`，放在单独的桌面版动作图集中。桌面上所有可见动作都改用真实狗狗图集，不会再切回电子小狗；已验证的 Codex `8×11` 图集保持不变。
+- 单次动作会在第 1 帧和最后 1 帧短暂停留，不会在结束时突然跳回开头；换动作时再用 `0.62 秒`从上一动作尾帧平滑过渡到下一动作首帧。
+- 自动散步和玩耍会少很多，多数判断之间会先待机 `10–22 秒`，整体更像一只安静生活在屏幕上的小狗。
+
+<details>
+<summary>查看八个桌面动作预览</summary>
+
+| 歪头杀 | 吃饭 | 打滚 | 等待 |
+| --- | --- | --- | --- |
+| ![妹妹歪头](assets/desktop-preview/head-tilt.gif) | ![妹妹吃饭](assets/desktop-preview/eating.gif) | ![妹妹打滚](assets/desktop-preview/roll.gif) | ![妹妹等待](assets/desktop-preview/waiting.gif) |
+
+| 开机启动 | 向左走 | 向右走 | 一脸期待 |
+| --- | --- | --- | --- |
+| ![妹妹开机启动](assets/desktop-preview/startup.gif) | ![妹妹向左走](assets/desktop-preview/walk-left.gif) | ![妹妹向右走](assets/desktop-preview/walk-right.gif) | ![妹妹一脸期待](assets/desktop-preview/expectant.gif) |
+
+原始 MP4 同时提供最终的真实狗狗画面和动作。程序会逐帧去掉绿幕；成片8缺失的尾巴在本机使用成片7的真实尾巴素材补齐，没有调用在线生成服务。App 只打包透明动作图集，不会把原视频上传或塞进安装包。
+
+![向右走尾巴补全检查图](assets/desktop-preview/walk-right-tail-completion.png)
+
+</details>
 
 <details>
 <summary>查看妹妹的完整动画图集</summary>
@@ -423,7 +475,7 @@ desktop-pet-dog/
 ├── agents/openai.yaml               # Skill 显示信息与默认提示
 ├── assets/
 │   ├── pet/                         # Codex v2 图集、清单与 QA 预览
-│   ├── desktop/妹妹.app             # 已构建的 Apple Silicon App
+│   ├── desktop/妹妹.app.zip         # 已构建的 Apple Silicon App 压缩包
 │   └── desktop-source/              # 可审查的 Objective-C 源码
 ├── references/asset-contract.md     # 动画、尺寸与行为约束
 └── scripts/

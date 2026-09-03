@@ -1,0 +1,1869 @@
+{
+  "ok": true,
+  "createdAt": "2026-09-02T23:52:43.706437+00:00",
+  "asset": "assets/desktop-source/video-actions.webp",
+  "sha256": "eb28634b8660bb8c61f4b2c9b7fb2e6f49cd1b4d7df8d514c61a2b543f7780f0",
+  "sourcePolicy": "Final keyed live-action dog pixels; videos define both appearance and motion.",
+  "dimensions": {
+    "width": 1536,
+    "height": 1664,
+    "cellWidth": 192,
+    "cellHeight": 208,
+    "rows": 8,
+    "framesPerRow": 8
+  },
+  "actions": [
+    {
+      "row": 0,
+      "action": "head-tilt",
+      "source": "成片1-歪头杀.mp4",
+      "sourceDurationSeconds": 5.056009,
+      "frames": 8,
+      "fps": 1.6,
+      "sharedSourceCrop": [
+        71,
+        3,
+        581,
+        720
+      ],
+      "sampleTimesSeconds": [
+        0.05,
+        0.736573,
+        1.423145,
+        2.109718,
+        2.796291,
+        3.482864,
+        4.169436,
+        4.856009
+      ],
+      "sampleStartSeconds": null,
+      "sampleStepSeconds": null,
+      "normalization": "shared-crop",
+      "wholeBodyCellEdgeAlphaPixels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "loopSeam": {
+        "firstBbox": [
+          29,
+          14,
+          158,
+          203
+        ],
+        "lastBbox": [
+          28,
+          13,
+          158,
+          203
+        ],
+        "centerDeltaPixels": 0.7071,
+        "meanRgbaDifference": 4.1741
+      },
+      "tailCompletion": null,
+      "frameReports": [
+        {
+          "keyChroma": [
+            0.28483,
+            0.423881,
+            0.292105
+          ],
+          "bboxAtAlpha96": [
+            82,
+            35,
+            554,
+            720
+          ],
+          "opaquePixels": 184093,
+          "semiTransparentPixels": 29319,
+          "transparentPixels": 304988,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 38
+        },
+        {
+          "keyChroma": [
+            0.282258,
+            0.424731,
+            0.292887
+          ],
+          "bboxAtAlpha96": [
+            81,
+            34,
+            555,
+            720
+          ],
+          "opaquePixels": 185119,
+          "semiTransparentPixels": 28254,
+          "transparentPixels": 305027,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 28
+        },
+        {
+          "keyChroma": [
+            0.282258,
+            0.42487,
+            0.292683
+          ],
+          "bboxAtAlpha96": [
+            81,
+            50,
+            553,
+            720
+          ],
+          "opaquePixels": 182960,
+          "semiTransparentPixels": 28209,
+          "transparentPixels": 307231,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 20
+        },
+        {
+          "keyChroma": [
+            0.282258,
+            0.42522,
+            0.293296
+          ],
+          "bboxAtAlpha96": [
+            81,
+            13,
+            570,
+            720
+          ],
+          "opaquePixels": 181880,
+          "semiTransparentPixels": 26254,
+          "transparentPixels": 310266,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 27
+        },
+        {
+          "keyChroma": [
+            0.281421,
+            0.426184,
+            0.292308
+          ],
+          "bboxAtAlpha96": [
+            78,
+            13,
+            572,
+            720
+          ],
+          "opaquePixels": 176945,
+          "semiTransparentPixels": 30480,
+          "transparentPixels": 310975,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 16
+        },
+        {
+          "keyChroma": [
+            0.281337,
+            0.426357,
+            0.293011
+          ],
+          "bboxAtAlpha96": [
+            78,
+            14,
+            574,
+            720
+          ],
+          "opaquePixels": 178264,
+          "semiTransparentPixels": 28620,
+          "transparentPixels": 311516,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 11
+        },
+        {
+          "keyChroma": [
+            0.281768,
+            0.42623,
+            0.292428
+          ],
+          "bboxAtAlpha96": [
+            78,
+            31,
+            556,
+            720
+          ],
+          "opaquePixels": 187903,
+          "semiTransparentPixels": 27063,
+          "transparentPixels": 303434,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 18
+        },
+        {
+          "keyChroma": [
+            0.282258,
+            0.425287,
+            0.29235
+          ],
+          "bboxAtAlpha96": [
+            80,
+            31,
+            554,
+            720
+          ],
+          "opaquePixels": 187841,
+          "semiTransparentPixels": 26683,
+          "transparentPixels": 303876,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 23
+        }
+      ]
+    },
+    {
+      "row": 1,
+      "action": "eating",
+      "source": "成片2-小狗吃饭.mp4",
+      "sourceDurationSeconds": 5.056009,
+      "frames": 8,
+      "fps": 1.6,
+      "sharedSourceCrop": [
+        0,
+        0,
+        720,
+        687
+      ],
+      "sampleTimesSeconds": [
+        3.0,
+        3.2,
+        3.4,
+        3.6,
+        3.8,
+        4.0,
+        4.2,
+        4.4
+      ],
+      "sampleStartSeconds": 3.0,
+      "sampleStepSeconds": 0.2,
+      "normalization": "shared-crop",
+      "wholeBodyCellEdgeAlphaPixels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "loopSeam": {
+        "firstBbox": [
+          6,
+          60,
+          168,
+          200
+        ],
+        "lastBbox": [
+          19,
+          57,
+          164,
+          199
+        ],
+        "centerDeltaPixels": 4.9244,
+        "meanRgbaDifference": 17.7709
+      },
+      "tailCompletion": null,
+      "frameReports": [
+        {
+          "keyChroma": [
+            0.243636,
+            0.439863,
+            0.317152
+          ],
+          "bboxAtAlpha96": [
+            0,
+            0,
+            720,
+            677
+          ],
+          "opaquePixels": 207956,
+          "semiTransparentPixels": 36266,
+          "transparentPixels": 274178,
+          "cornerAlphaMax": 255,
+          "normalizedDetachedPixelsRemoved": 608
+        },
+        {
+          "keyChroma": [
+            0.24055,
+            0.43865,
+            0.319588
+          ],
+          "bboxAtAlpha96": [
+            3,
+            114,
+            649,
+            677
+          ],
+          "opaquePixels": 209410,
+          "semiTransparentPixels": 33273,
+          "transparentPixels": 275717,
+          "cornerAlphaMax": 0,
+          "normalizedDetachedPixelsRemoved": 14
+        },
+        {
+          "keyChroma": [
+            0.239344,
+            0.43949,
+            0.320635
+          ],
+          "bboxAtAlpha96": [
+            30,
+            99,
+            659,
+            676
+          ],
+          "opaquePixels": 206742,
+          "semiTransparentPixels": 32916,
+          "transparentPixels": 278742,
+          "cornerAlphaMax": 0,
+          "normalizedDetachedPixelsRemoved": 17
+        },
+        {
+          "keyChroma": [
+            0.238889,
+            0.440514,
+            0.320513
+          ],
+          "bboxAtAlpha96": [
+            42,
+            98,
+            652,
+            676
+          ],
+          "opaquePixels": 201418,
+          "semiTransparentPixels": 32406,
+          "transparentPixels": 284576,
+          "cornerAlphaMax": 0,
+          "normalizedDetachedPixelsRemoved": 14
+        },
+        {
+          "keyChroma": [
+            0.23913,
+            0.439883,
+            0.320675
+          ],
+          "bboxAtAlpha96": [
+            50,
+            94,
+            652,
+            674
+          ],
+          "opaquePixels": 198936,
+          "semiTransparentPixels": 32218,
+          "transparentPixels": 287246,
+          "cornerAlphaMax": 0,
+          "normalizedDetachedPixelsRemoved": 11
+        },
+        {
+          "keyChroma": [
+            0.239437,
+            0.43949,
+            0.320755
+          ],
+          "bboxAtAlpha96": [
+            48,
+            94,
+            650,
+            674
+          ],
+          "opaquePixels": 197902,
+          "semiTransparentPixels": 31979,
+          "transparentPixels": 288519,
+          "cornerAlphaMax": 0,
+          "normalizedDetachedPixelsRemoved": 11
+        },
+        {
+          "keyChroma": [
+            0.239067,
+            0.440341,
+            0.320872
+          ],
+          "bboxAtAlpha96": [
+            52,
+            98,
+            636,
+            674
+          ],
+          "opaquePixels": 197321,
+          "semiTransparentPixels": 31419,
+          "transparentPixels": 289660,
+          "cornerAlphaMax": 0,
+          "normalizedDetachedPixelsRemoved": 10
+        },
+        {
+          "keyChroma": [
+            0.238636,
+            0.440341,
+            0.320872
+          ],
+          "bboxAtAlpha96": [
+            51,
+            102,
+            633,
+            674
+          ],
+          "opaquePixels": 199113,
+          "semiTransparentPixels": 30158,
+          "transparentPixels": 289129,
+          "cornerAlphaMax": 0,
+          "normalizedDetachedPixelsRemoved": 12
+        }
+      ]
+    },
+    {
+      "row": 2,
+      "action": "roll",
+      "source": "成片3-打滚.mp4",
+      "sourceDurationSeconds": 5.056009,
+      "frames": 8,
+      "fps": 1.6,
+      "sharedSourceCrop": [
+        0,
+        0,
+        720,
+        720
+      ],
+      "sampleTimesSeconds": [
+        0.05,
+        0.736573,
+        1.423145,
+        2.109718,
+        2.796291,
+        3.482864,
+        4.169436,
+        4.856009
+      ],
+      "sampleStartSeconds": null,
+      "sampleStepSeconds": null,
+      "normalization": "shared-crop",
+      "wholeBodyCellEdgeAlphaPixels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "loopSeam": {
+        "firstBbox": [
+          55,
+          51,
+          155,
+          135
+        ],
+        "lastBbox": [
+          6,
+          63,
+          179,
+          200
+        ],
+        "centerDeltaPixels": 40.4784,
+        "meanRgbaDifference": 37.583
+      },
+      "tailCompletion": null,
+      "frameReports": [
+        {
+          "keyChroma": [
+            0.264957,
+            0.438692,
+            0.29661
+          ],
+          "bboxAtAlpha96": [
+            197,
+            0,
+            720,
+            448
+          ],
+          "opaquePixels": 74236,
+          "semiTransparentPixels": 22746,
+          "transparentPixels": 421418,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 116
+        },
+        {
+          "keyChroma": [
+            0.262108,
+            0.439891,
+            0.297927
+          ],
+          "bboxAtAlpha96": [
+            0,
+            0,
+            704,
+            508
+          ],
+          "opaquePixels": 103795,
+          "semiTransparentPixels": 19097,
+          "transparentPixels": 395508,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 79
+        },
+        {
+          "keyChroma": [
+            0.256881,
+            0.445483,
+            0.297619
+          ],
+          "bboxAtAlpha96": [
+            0,
+            0,
+            720,
+            568
+          ],
+          "opaquePixels": 137856,
+          "semiTransparentPixels": 25492,
+          "transparentPixels": 355052,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 102
+        },
+        {
+          "keyChroma": [
+            0.257862,
+            0.446429,
+            0.297578
+          ],
+          "bboxAtAlpha96": [
+            0,
+            0,
+            720,
+            549
+          ],
+          "opaquePixels": 133699,
+          "semiTransparentPixels": 24731,
+          "transparentPixels": 359970,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 79
+        },
+        {
+          "keyChroma": [
+            0.258258,
+            0.445483,
+            0.298193
+          ],
+          "bboxAtAlpha96": [
+            0,
+            0,
+            720,
+            553
+          ],
+          "opaquePixels": 129364,
+          "semiTransparentPixels": 24740,
+          "transparentPixels": 364296,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 89
+        },
+        {
+          "keyChroma": [
+            0.258258,
+            0.446429,
+            0.297203
+          ],
+          "bboxAtAlpha96": [
+            0,
+            0,
+            720,
+            534
+          ],
+          "opaquePixels": 129364,
+          "semiTransparentPixels": 24562,
+          "transparentPixels": 364474,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 77
+        },
+        {
+          "keyChroma": [
+            0.260504,
+            0.441441,
+            0.299674
+          ],
+          "bboxAtAlpha96": [
+            7,
+            0,
+            705,
+            720
+          ],
+          "opaquePixels": 146944,
+          "semiTransparentPixels": 25867,
+          "transparentPixels": 345589,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 71
+        },
+        {
+          "keyChroma": [
+            0.260388,
+            0.440994,
+            0.299728
+          ],
+          "bboxAtAlpha96": [
+            0,
+            0,
+            705,
+            710
+          ],
+          "opaquePixels": 157063,
+          "semiTransparentPixels": 24111,
+          "transparentPixels": 337226,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 61
+        }
+      ]
+    },
+    {
+      "row": 3,
+      "action": "waiting",
+      "source": "成片5-等待.mp4",
+      "sourceDurationSeconds": 5.056009,
+      "frames": 8,
+      "fps": 1.4,
+      "sharedSourceCrop": [
+        148,
+        0,
+        698,
+        720
+      ],
+      "sampleTimesSeconds": [
+        0.05,
+        0.736573,
+        1.423145,
+        2.109718,
+        2.796291,
+        3.482864,
+        4.169436,
+        4.856009
+      ],
+      "sampleStartSeconds": null,
+      "sampleStepSeconds": null,
+      "normalization": "shared-crop",
+      "wholeBodyCellEdgeAlphaPixels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "loopSeam": {
+        "firstBbox": [
+          22,
+          5,
+          153,
+          203
+        ],
+        "lastBbox": [
+          23,
+          5,
+          154,
+          203
+        ],
+        "centerDeltaPixels": 1.0,
+        "meanRgbaDifference": 14.1842
+      },
+      "tailCompletion": null,
+      "frameReports": [
+        {
+          "keyChroma": [
+            0.222222,
+            0.448179,
+            0.329412
+          ],
+          "bboxAtAlpha96": [
+            156,
+            0,
+            688,
+            720
+          ],
+          "opaquePixels": 201421,
+          "semiTransparentPixels": 18665,
+          "transparentPixels": 298314,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 100
+        },
+        {
+          "keyChroma": [
+            0.221289,
+            0.447028,
+            0.329897
+          ],
+          "bboxAtAlpha96": [
+            156,
+            0,
+            690,
+            720
+          ],
+          "opaquePixels": 201805,
+          "semiTransparentPixels": 18929,
+          "transparentPixels": 297666,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 90
+        },
+        {
+          "keyChroma": [
+            0.22067,
+            0.44898,
+            0.330218
+          ],
+          "bboxAtAlpha96": [
+            156,
+            0,
+            690,
+            720
+          ],
+          "opaquePixels": 201940,
+          "semiTransparentPixels": 19261,
+          "transparentPixels": 297199,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 76
+        },
+        {
+          "keyChroma": [
+            0.22082,
+            0.448819,
+            0.329897
+          ],
+          "bboxAtAlpha96": [
+            156,
+            0,
+            690,
+            720
+          ],
+          "opaquePixels": 201672,
+          "semiTransparentPixels": 19251,
+          "transparentPixels": 297477,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 91
+        },
+        {
+          "keyChroma": [
+            0.216524,
+            0.45098,
+            0.332168
+          ],
+          "bboxAtAlpha96": [
+            156,
+            0,
+            689,
+            720
+          ],
+          "opaquePixels": 209238,
+          "semiTransparentPixels": 18752,
+          "transparentPixels": 290410,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 70
+        },
+        {
+          "keyChroma": [
+            0.219436,
+            0.45,
+            0.331476
+          ],
+          "bboxAtAlpha96": [
+            158,
+            0,
+            689,
+            720
+          ],
+          "opaquePixels": 208559,
+          "semiTransparentPixels": 18579,
+          "transparentPixels": 291262,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 75
+        },
+        {
+          "keyChroma": [
+            0.218023,
+            0.45,
+            0.332155
+          ],
+          "bboxAtAlpha96": [
+            158,
+            0,
+            690,
+            720
+          ],
+          "opaquePixels": 208265,
+          "semiTransparentPixels": 18052,
+          "transparentPixels": 292083,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 75
+        },
+        {
+          "keyChroma": [
+            0.217514,
+            0.449848,
+            0.332143
+          ],
+          "bboxAtAlpha96": [
+            158,
+            0,
+            690,
+            720
+          ],
+          "opaquePixels": 207929,
+          "semiTransparentPixels": 22396,
+          "transparentPixels": 288075,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 77
+        }
+      ]
+    },
+    {
+      "row": 4,
+      "action": "startup",
+      "source": "成片6-开机启动.mp4",
+      "sourceDurationSeconds": 5.056009,
+      "frames": 8,
+      "fps": 4.0,
+      "sharedSourceCrop": [
+        95,
+        98,
+        536,
+        720
+      ],
+      "sampleTimesSeconds": [
+        0.2,
+        0.45,
+        0.7,
+        0.95,
+        1.2,
+        1.45,
+        1.7,
+        1.95
+      ],
+      "sampleStartSeconds": 0.2,
+      "sampleStepSeconds": 0.25,
+      "normalization": "shared-crop",
+      "wholeBodyCellEdgeAlphaPixels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "loopSeam": {
+        "firstBbox": [
+          27,
+          18,
+          153,
+          197
+        ],
+        "lastBbox": [
+          59,
+          9,
+          163,
+          203
+        ],
+        "centerDeltaPixels": 21.0535,
+        "meanRgbaDifference": 30.5286
+      },
+      "tailCompletion": null,
+      "frameReports": [
+        {
+          "keyChroma": [
+            0.276817,
+            0.422713,
+            0.300283
+          ],
+          "bboxAtAlpha96": [
+            101,
+            138,
+            496,
+            702
+          ],
+          "opaquePixels": 101153,
+          "semiTransparentPixels": 25720,
+          "transparentPixels": 391527,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 41
+        },
+        {
+          "keyChroma": [
+            0.278932,
+            0.42,
+            0.299703
+          ],
+          "bboxAtAlpha96": [
+            122,
+            140,
+            494,
+            720
+          ],
+          "opaquePixels": 99974,
+          "semiTransparentPixels": 24721,
+          "transparentPixels": 393705,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 28
+        },
+        {
+          "keyChroma": [
+            0.28013,
+            0.41841,
+            0.299728
+          ],
+          "bboxAtAlpha96": [
+            152,
+            131,
+            490,
+            720
+          ],
+          "opaquePixels": 102619,
+          "semiTransparentPixels": 24108,
+          "transparentPixels": 391673,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 24
+        },
+        {
+          "keyChroma": [
+            0.281457,
+            0.41791,
+            0.299703
+          ],
+          "bboxAtAlpha96": [
+            184,
+            113,
+            495,
+            720
+          ],
+          "opaquePixels": 107988,
+          "semiTransparentPixels": 22448,
+          "transparentPixels": 387964,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 30
+        },
+        {
+          "keyChroma": [
+            0.28169,
+            0.41716,
+            0.300283
+          ],
+          "bboxAtAlpha96": [
+            211,
+            122,
+            496,
+            720
+          ],
+          "opaquePixels": 113601,
+          "semiTransparentPixels": 21500,
+          "transparentPixels": 383299,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 15
+        },
+        {
+          "keyChroma": [
+            0.28169,
+            0.41716,
+            0.30031
+          ],
+          "bboxAtAlpha96": [
+            209,
+            128,
+            502,
+            720
+          ],
+          "opaquePixels": 119925,
+          "semiTransparentPixels": 20581,
+          "transparentPixels": 377894,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 12
+        },
+        {
+          "keyChroma": [
+            0.281967,
+            0.41716,
+            0.30031
+          ],
+          "bboxAtAlpha96": [
+            205,
+            107,
+            518,
+            720
+          ],
+          "opaquePixels": 128333,
+          "semiTransparentPixels": 21808,
+          "transparentPixels": 368259,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 17
+        },
+        {
+          "keyChroma": [
+            0.281967,
+            0.41716,
+            0.300283
+          ],
+          "bboxAtAlpha96": [
+            201,
+            112,
+            530,
+            720
+          ],
+          "opaquePixels": 134581,
+          "semiTransparentPixels": 21906,
+          "transparentPixels": 361913,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 12
+        }
+      ]
+    },
+    {
+      "row": 5,
+      "action": "walk-left",
+      "source": "成片7-向左走.mp4",
+      "sourceDurationSeconds": 5.056009,
+      "frames": 8,
+      "fps": 5.0,
+      "sharedSourceCrop": [
+        0,
+        191,
+        720,
+        617
+      ],
+      "sampleTimesSeconds": [
+        4.35,
+        4.425,
+        4.5,
+        4.575,
+        4.65,
+        4.725,
+        4.8,
+        4.875
+      ],
+      "sampleStartSeconds": 4.35,
+      "sampleStepSeconds": 0.075,
+      "normalization": "tracked-baseline",
+      "wholeBodyCellEdgeAlphaPixels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "loopSeam": {
+        "firstBbox": [
+          7,
+          118,
+          185,
+          203
+        ],
+        "lastBbox": [
+          8,
+          111,
+          184,
+          201
+        ],
+        "centerDeltaPixels": 4.5,
+        "meanRgbaDifference": 17.707
+      },
+      "tailCompletion": null,
+      "frameReports": [
+        {
+          "keyChroma": [
+            0.258152,
+            0.422857,
+            0.319767
+          ],
+          "bboxAtAlpha96": [
+            49,
+            269,
+            720,
+            587
+          ],
+          "opaquePixels": 89914,
+          "semiTransparentPixels": 24720,
+          "transparentPixels": 403766,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 1885,
+          "normalizedDustPixelsRemoved": 21
+        },
+        {
+          "keyChroma": [
+            0.257971,
+            0.422857,
+            0.319767
+          ],
+          "bboxAtAlpha96": [
+            39,
+            251,
+            682,
+            593
+          ],
+          "opaquePixels": 92677,
+          "semiTransparentPixels": 24727,
+          "transparentPixels": 400996,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 2868,
+          "normalizedDustPixelsRemoved": 25
+        },
+        {
+          "keyChroma": [
+            0.257971,
+            0.422857,
+            0.319885
+          ],
+          "bboxAtAlpha96": [
+            38,
+            250,
+            679,
+            595
+          ],
+          "opaquePixels": 91636,
+          "semiTransparentPixels": 22789,
+          "transparentPixels": 403975,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 2883,
+          "normalizedDustPixelsRemoved": 23
+        },
+        {
+          "keyChroma": [
+            0.258427,
+            0.422857,
+            0.319885
+          ],
+          "bboxAtAlpha96": [
+            40,
+            235,
+            692,
+            611
+          ],
+          "opaquePixels": 84006,
+          "semiTransparentPixels": 35636,
+          "transparentPixels": 398758,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 1169,
+          "normalizedDustPixelsRemoved": 29
+        },
+        {
+          "keyChroma": [
+            0.258152,
+            0.422857,
+            0.319885
+          ],
+          "bboxAtAlpha96": [
+            33,
+            201,
+            700,
+            591
+          ],
+          "opaquePixels": 96206,
+          "semiTransparentPixels": 24342,
+          "transparentPixels": 397852,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 1553,
+          "normalizedDustPixelsRemoved": 28
+        },
+        {
+          "keyChroma": [
+            0.258152,
+            0.422857,
+            0.319892
+          ],
+          "bboxAtAlpha96": [
+            15,
+            197,
+            688,
+            593
+          ],
+          "opaquePixels": 93077,
+          "semiTransparentPixels": 23857,
+          "transparentPixels": 401466,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 2987,
+          "normalizedDustPixelsRemoved": 32
+        },
+        {
+          "keyChroma": [
+            0.258427,
+            0.422857,
+            0.319885
+          ],
+          "bboxAtAlpha96": [
+            0,
+            223,
+            674,
+            594
+          ],
+          "opaquePixels": 94007,
+          "semiTransparentPixels": 26239,
+          "transparentPixels": 398154,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 13930,
+          "normalizedDustPixelsRemoved": 22
+        },
+        {
+          "keyChroma": [
+            0.258427,
+            0.422857,
+            0.319885
+          ],
+          "bboxAtAlpha96": [
+            0,
+            247,
+            659,
+            590
+          ],
+          "opaquePixels": 91459,
+          "semiTransparentPixels": 23407,
+          "transparentPixels": 403534,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 13454,
+          "normalizedDustPixelsRemoved": 42
+        }
+      ]
+    },
+    {
+      "row": 6,
+      "action": "walk-right",
+      "source": "成片8-向右走.mp4",
+      "sourceDurationSeconds": 5.056009,
+      "frames": 8,
+      "fps": 5.0,
+      "sharedSourceCrop": [
+        62,
+        249,
+        939,
+        656
+      ],
+      "sampleTimesSeconds": [
+        3.35,
+        3.55,
+        3.75,
+        3.95,
+        4.15,
+        4.35,
+        4.55,
+        4.75
+      ],
+      "sampleStartSeconds": 3.35,
+      "sampleStepSeconds": 0.2,
+      "normalization": "tracked-tail-complete",
+      "wholeBodyCellEdgeAlphaPixels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "loopSeam": {
+        "firstBbox": [
+          6,
+          118,
+          186,
+          202
+        ],
+        "lastBbox": [
+          17,
+          122,
+          175,
+          203
+        ],
+        "centerDeltaPixels": 2.5,
+        "meanRgbaDifference": 19.1162
+      },
+      "tailCompletion": {
+        "donorSource": "成片7-向左走.mp4",
+        "donorSampleTimesSeconds": [
+          4.35,
+          4.425,
+          4.5,
+          4.575,
+          4.65,
+          4.725,
+          4.8,
+          4.875
+        ],
+        "frames": [
+          {
+            "method": "mirrored real-tail donor aligned by nose and baseline behind recipient",
+            "donorScale": 1.232704,
+            "recipientSourceBbox": [
+              0,
+              257,
+              662,
+              649
+            ],
+            "donorSourceBbox": [
+              0,
+              269,
+              671,
+              587
+            ],
+            "tailCutoffX": 372,
+            "tailVisiblePixels": 46100,
+            "completedBbox": [
+              74,
+              257,
+              902,
+              649
+            ]
+          },
+          {
+            "method": "mirrored real-tail donor aligned by nose and baseline behind recipient",
+            "donorScale": 1.105263,
+            "recipientSourceBbox": [
+              0,
+              273,
+              671,
+              651
+            ],
+            "donorSourceBbox": [
+              38,
+              251,
+              681,
+              593
+            ],
+            "tailCutoffX": 456,
+            "tailVisiblePixels": 41792,
+            "completedBbox": [
+              200,
+              273,
+              911,
+              651
+            ]
+          },
+          {
+            "method": "mirrored real-tail donor aligned by nose and baseline behind recipient",
+            "donorScale": 1.095652,
+            "recipientSourceBbox": [
+              0,
+              273,
+              669,
+              651
+            ],
+            "donorSourceBbox": [
+              41,
+              250,
+              682,
+              595
+            ],
+            "tailCutoffX": 458,
+            "tailVisiblePixels": 39822,
+            "completedBbox": [
+              205,
+              273,
+              909,
+              651
+            ]
+          },
+          {
+            "method": "mirrored real-tail donor aligned by nose and baseline behind recipient",
+            "donorScale": 1.023936,
+            "recipientSourceBbox": [
+              0,
+              266,
+              672,
+              651
+            ],
+            "donorSourceBbox": [
+              28,
+              235,
+              680,
+              611
+            ],
+            "tailCutoffX": 485,
+            "tailVisiblePixels": 28863,
+            "completedBbox": [
+              240,
+              266,
+              912,
+              651
+            ]
+          },
+          {
+            "method": "mirrored real-tail donor aligned by nose and baseline behind recipient",
+            "donorScale": 1.010256,
+            "recipientSourceBbox": [
+              0,
+              257,
+              675,
+              651
+            ],
+            "donorSourceBbox": [
+              20,
+              201,
+              687,
+              591
+            ],
+            "tailCutoffX": 484,
+            "tailVisiblePixels": 26051,
+            "completedBbox": [
+              240,
+              257,
+              915,
+              651
+            ]
+          },
+          {
+            "method": "mirrored real-tail donor aligned by nose and baseline behind recipient",
+            "donorScale": 0.989899,
+            "recipientSourceBbox": [
+              0,
+              254,
+              680,
+              646
+            ],
+            "donorSourceBbox": [
+              32,
+              197,
+              705,
+              593
+            ],
+            "tailCutoffX": 494,
+            "tailVisiblePixels": 25726,
+            "completedBbox": [
+              240,
+              254,
+              920,
+              646
+            ]
+          },
+          {
+            "method": "mirrored real-tail donor aligned by nose and baseline behind recipient",
+            "donorScale": 1.051213,
+            "recipientSourceBbox": [
+              0,
+              261,
+              686,
+              651
+            ],
+            "donorSourceBbox": [
+              46,
+              223,
+              720,
+              594
+            ],
+            "tailCutoffX": 472,
+            "tailVisiblePixels": 31401,
+            "completedBbox": [
+              217,
+              261,
+              926,
+              651
+            ]
+          },
+          {
+            "method": "mirrored real-tail donor aligned by nose and baseline behind recipient",
+            "donorScale": 1.099125,
+            "recipientSourceBbox": [
+              0,
+              273,
+              687,
+              650
+            ],
+            "donorSourceBbox": [
+              61,
+              247,
+              720,
+              590
+            ],
+            "tailCutoffX": 464,
+            "tailVisiblePixels": 35705,
+            "completedBbox": [
+              203,
+              273,
+              927,
+              650
+            ]
+          }
+        ]
+      },
+      "frameReports": [
+        {
+          "keyChroma": [
+            0.246951,
+            0.428571,
+            0.325228
+          ],
+          "bboxAtAlpha96": [
+            0,
+            257,
+            662,
+            649
+          ],
+          "opaquePixels": 126036,
+          "semiTransparentPixels": 30471,
+          "transparentPixels": 361893,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 6033,
+          "normalizedDustPixelsRemoved": 14
+        },
+        {
+          "keyChroma": [
+            0.246201,
+            0.428571,
+            0.325228
+          ],
+          "bboxAtAlpha96": [
+            0,
+            273,
+            671,
+            651
+          ],
+          "opaquePixels": 126117,
+          "semiTransparentPixels": 30158,
+          "transparentPixels": 362125,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 2880,
+          "normalizedDustPixelsRemoved": 7
+        },
+        {
+          "keyChroma": [
+            0.246201,
+            0.428571,
+            0.325228
+          ],
+          "bboxAtAlpha96": [
+            0,
+            273,
+            669,
+            651
+          ],
+          "opaquePixels": 124108,
+          "semiTransparentPixels": 28513,
+          "transparentPixels": 365779,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 3172,
+          "normalizedDustPixelsRemoved": 11
+        },
+        {
+          "keyChroma": [
+            0.246951,
+            0.428571,
+            0.325228
+          ],
+          "bboxAtAlpha96": [
+            0,
+            266,
+            672,
+            651
+          ],
+          "opaquePixels": 131033,
+          "semiTransparentPixels": 27586,
+          "transparentPixels": 359781,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 5957,
+          "normalizedDustPixelsRemoved": 63
+        },
+        {
+          "keyChroma": [
+            0.246951,
+            0.428571,
+            0.325228
+          ],
+          "bboxAtAlpha96": [
+            0,
+            257,
+            675,
+            651
+          ],
+          "opaquePixels": 133624,
+          "semiTransparentPixels": 34861,
+          "transparentPixels": 349915,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 7094,
+          "normalizedDustPixelsRemoved": 49
+        },
+        {
+          "keyChroma": [
+            0.248466,
+            0.426866,
+            0.325228
+          ],
+          "bboxAtAlpha96": [
+            0,
+            254,
+            680,
+            646
+          ],
+          "opaquePixels": 133134,
+          "semiTransparentPixels": 29595,
+          "transparentPixels": 355671,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 5374,
+          "normalizedDustPixelsRemoved": 33
+        },
+        {
+          "keyChroma": [
+            0.247761,
+            0.426866,
+            0.325228
+          ],
+          "bboxAtAlpha96": [
+            0,
+            261,
+            686,
+            651
+          ],
+          "opaquePixels": 93563,
+          "semiTransparentPixels": 60913,
+          "transparentPixels": 363924,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 3643,
+          "normalizedDustPixelsRemoved": 7
+        },
+        {
+          "keyChroma": [
+            0.248466,
+            0.425926,
+            0.325
+          ],
+          "bboxAtAlpha96": [
+            0,
+            273,
+            687,
+            650
+          ],
+          "opaquePixels": 125791,
+          "semiTransparentPixels": 34003,
+          "transparentPixels": 358606,
+          "cornerAlphaMax": 0,
+          "walkFloorPixelsRemoved": 1639,
+          "normalizedDustPixelsRemoved": 2
+        }
+      ]
+    },
+    {
+      "row": 7,
+      "action": "expectant",
+      "source": "成片9-一脸期待.mp4",
+      "sourceDurationSeconds": 5.056009,
+      "frames": 8,
+      "fps": 1.5,
+      "sharedSourceCrop": [
+        174,
+        81,
+        679,
+        720
+      ],
+      "sampleTimesSeconds": [
+        0.05,
+        0.736573,
+        1.423145,
+        2.109718,
+        2.796291,
+        3.482864,
+        4.169436,
+        4.856009
+      ],
+      "sampleStartSeconds": null,
+      "sampleStepSeconds": null,
+      "normalization": "shared-crop",
+      "wholeBodyCellEdgeAlphaPixels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "loopSeam": {
+        "firstBbox": [
+          23,
+          12,
+          166,
+          203
+        ],
+        "lastBbox": [
+          20,
+          8,
+          171,
+          203
+        ],
+        "centerDeltaPixels": 2.2361,
+        "meanRgbaDifference": 17.9721
+      },
+      "tailCompletion": null,
+      "frameReports": [
+        {
+          "keyChroma": [
+            0.248139,
+            0.438172,
+            0.31457
+          ],
+          "bboxAtAlpha96": [
+            192,
+            104,
+            651,
+            720
+          ],
+          "opaquePixels": 146370,
+          "semiTransparentPixels": 22729,
+          "transparentPixels": 349301,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 23
+        },
+        {
+          "keyChroma": [
+            0.246835,
+            0.439227,
+            0.315534
+          ],
+          "bboxAtAlpha96": [
+            195,
+            102,
+            598,
+            720
+          ],
+          "opaquePixels": 144063,
+          "semiTransparentPixels": 21738,
+          "transparentPixels": 352599,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 20
+        },
+        {
+          "keyChroma": [
+            0.246883,
+            0.439024,
+            0.315534
+          ],
+          "bboxAtAlpha96": [
+            194,
+            100,
+            672,
+            720
+          ],
+          "opaquePixels": 147110,
+          "semiTransparentPixels": 23092,
+          "transparentPixels": 348198,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 22
+        },
+        {
+          "keyChroma": [
+            0.247649,
+            0.439153,
+            0.315353
+          ],
+          "bboxAtAlpha96": [
+            193,
+            100,
+            670,
+            720
+          ],
+          "opaquePixels": 147489,
+          "semiTransparentPixels": 22997,
+          "transparentPixels": 347914,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 24
+        },
+        {
+          "keyChroma": [
+            0.247191,
+            0.439227,
+            0.315136
+          ],
+          "bboxAtAlpha96": [
+            190,
+            102,
+            670,
+            720
+          ],
+          "opaquePixels": 146659,
+          "semiTransparentPixels": 22770,
+          "transparentPixels": 348971,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 18
+        },
+        {
+          "keyChroma": [
+            0.247525,
+            0.439227,
+            0.315018
+          ],
+          "bboxAtAlpha96": [
+            189,
+            114,
+            670,
+            720
+          ],
+          "opaquePixels": 143608,
+          "semiTransparentPixels": 22420,
+          "transparentPixels": 352372,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 26
+        },
+        {
+          "keyChroma": [
+            0.246883,
+            0.439394,
+            0.315287
+          ],
+          "bboxAtAlpha96": [
+            183,
+            96,
+            670,
+            720
+          ],
+          "opaquePixels": 147712,
+          "semiTransparentPixels": 22657,
+          "transparentPixels": 348031,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 19
+        },
+        {
+          "keyChroma": [
+            0.247191,
+            0.439024,
+            0.315136
+          ],
+          "bboxAtAlpha96": [
+            181,
+            90,
+            670,
+            720
+          ],
+          "opaquePixels": 148217,
+          "semiTransparentPixels": 23095,
+          "transparentPixels": 347088,
+          "cornerAlphaMax": 0,
+          "normalizedDustPixelsRemoved": 25
+        }
+      ]
+    }
+  ],
+  "alpha": {
+    "transparentRgbResidue": 0,
+    "nonEmptyCells": 64
+  },
+  "extraction": {
+    "method": "adaptive normalized-chroma key with foreground-core support",
+    "matte": "15 px morphological closing, enclosed-hole fill, 17 px feather support",
+    "despill": "green limited toward max(red, blue) while alpha is preserved",
+    "normalization": "one shared crop and transform for stationary actions; one shared scale with per-frame center/baseline tracking for directional walking; the source-clipped right tail is completed only with a mirrored real-tail donor from the paired left-walk footage"
+  },
+  "qaArtifacts": {
+    "contactSheet": "edit/verify/video-actions-live-contact-sheet.png",
+    "normalSizeContactSheet": "edit/verify/video-actions-live-contact-sheet-normal.png",
+    "tailHeadTransitions": "edit/verify/video-actions-tail-head-transitions.png",
+    "rightTailCompletion": "edit/verify/walk-right-tail-completion.png",
+    "previews": [
+      "edit/verify/head-tilt-live.gif",
+      "edit/verify/eating-live.gif",
+      "edit/verify/roll-live.gif",
+      "edit/verify/waiting-live.gif",
+      "edit/verify/startup-live.gif",
+      "edit/verify/walk-left-live.gif",
+      "edit/verify/walk-right-live.gif",
+      "edit/verify/expectant-live.gif"
+    ]
+  },
+  "visualQa": {
+    "verdict": "pass",
+    "note": "All eight rows use the latest real-dog footage, keep the complete body inside every 192x208 cell, preserve ordered motion at 97 px display width, and include dedicated loop-transition and source-to-tail-completion QA sheets."
+  }
+}

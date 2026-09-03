@@ -51,6 +51,16 @@ SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 CODEX_ROOT="${CODEX_HOME:-$HOME/.codex}"
 CODEX_DEST="$CODEX_ROOT/pets/meteor-meimei"
 DESKTOP_DEST="$HOME/Applications/妹妹.app"
+DESKTOP_ARCHIVE="$SKILL_DIR/assets/desktop/妹妹.app.zip"
+INSTALL_TMP=""
+
+cleanup() {
+  if [[ -n "$INSTALL_TMP" && -d "$INSTALL_TMP" ]]; then
+    /bin/rm -rf "$INSTALL_TMP"
+  fi
+}
+
+trap cleanup EXIT
 
 timestamp() {
   date +%Y%m%d-%H%M%S
@@ -95,7 +105,10 @@ install_codex() {
 
 install_desktop() {
   prepare_destination "$DESKTOP_DEST"
-  /usr/bin/ditto "$SKILL_DIR/assets/desktop/妹妹.app" "$DESKTOP_DEST"
+  INSTALL_TMP="$(/usr/bin/mktemp -d "${TMPDIR:-/tmp}/meteor-meimei-install.XXXXXX")"
+  /usr/bin/ditto -x -k "$DESKTOP_ARCHIVE" "$INSTALL_TMP"
+  [[ -d "$INSTALL_TMP/妹妹.app" ]] || { echo "Archive does not contain 妹妹.app: $DESKTOP_ARCHIVE" >&2; exit 1; }
+  /usr/bin/ditto "$INSTALL_TMP/妹妹.app" "$DESKTOP_DEST"
   /usr/bin/codesign --verify --deep --strict "$DESKTOP_DEST"
   echo "Installed desktop companion: $DESKTOP_DEST"
 }
@@ -104,7 +117,7 @@ if [[ "$TARGET" == "codex" || "$TARGET" == "all" ]]; then
   show_target "Codex pet" "$SKILL_DIR/assets/pet" "$CODEX_DEST"
 fi
 if [[ "$TARGET" == "desktop" || "$TARGET" == "all" ]]; then
-  show_target "Desktop companion" "$SKILL_DIR/assets/desktop/妹妹.app" "$DESKTOP_DEST"
+  show_target "Desktop companion" "$DESKTOP_ARCHIVE" "$DESKTOP_DEST"
 fi
 
 if [[ "$MODE" == "dry-run" ]]; then

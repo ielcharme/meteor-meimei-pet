@@ -14,9 +14,10 @@ CONTENTS="$APP_PATH/Contents"
 SOURCE="$SKILL_DIR/assets/desktop-source/MeteorMeimei.m"
 PLIST="$SKILL_DIR/assets/desktop-source/Info.plist"
 ATLAS="$SKILL_DIR/assets/pet/spritesheet.webp"
+ACTION_ATLAS="$SKILL_DIR/assets/desktop-source/video-actions.webp"
 PET_MANIFEST="$SKILL_DIR/assets/pet/pet.json"
 
-for required in "$SOURCE" "$PLIST" "$ATLAS" "$PET_MANIFEST"; do
+for required in "$SOURCE" "$PLIST" "$ATLAS" "$ACTION_ATLAS" "$PET_MANIFEST"; do
   [[ -f "$required" ]] || { echo "Missing build input: $required" >&2; exit 1; }
 done
 
@@ -34,6 +35,7 @@ trap '/bin/rm -rf "$BUILD_ROOT"' EXIT
   -o "$BUILD_ROOT/妹妹.app/Contents/MacOS/MeteorMeimei"
 /bin/cp "$PLIST" "$BUILD_ROOT/妹妹.app/Contents/Info.plist"
 /bin/cp "$ATLAS" "$BUILD_ROOT/妹妹.app/Contents/Resources/spritesheet.webp"
+/bin/cp "$ACTION_ATLAS" "$BUILD_ROOT/妹妹.app/Contents/Resources/video-actions.webp"
 /bin/cp "$PET_MANIFEST" "$BUILD_ROOT/妹妹.app/Contents/Resources/pet.json"
 /usr/bin/printf 'APPLMMPT' > "$BUILD_ROOT/妹妹.app/Contents/PkgInfo"
 /usr/bin/codesign --force --deep --sign - "$BUILD_ROOT/妹妹.app"

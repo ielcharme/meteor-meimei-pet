@@ -2,4 +2,6 @@
 dist/
 build/
 module-cache/
+qa/
+__pycache__/
 *.log
