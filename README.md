@@ -158,7 +158,7 @@ The Skill verifies the package and shows the resolved destination before writing
 
 ### Size and animation
 
-The desktop app keeps Meimei at the repository's small `97 px` resting width, with height derived from the original `192:208` cell ratio. Walking left, walking right, and rolling expand smoothly to `1.5×` from the bottom center so her complete body stays visible instead of being visually reduced. It also prohibits multiple running instances, so opening Meimei again reuses the one already on screen.
+The desktop app keeps Meimei at the repository's small `97 px` resting width, with height derived from the original `192:208` cell ratio. Walking left and right expand smoothly to `1.5×`; rolling expands to `1.8×` (`1.2×` larger than its previous `1.5×` rendering) from the bottom center so her complete body no longer looks reduced. It also prohibits multiple running instances, so opening Meimei again reuses the one already on screen.
 
 - Leftward and rightward movement keep their own source-body motion. Because every frame of the supplied right-walk clip cuts off the tail, only the missing tail is completed frame by frame from mirrored real-tail pixels in the paired left-walk clip.
 - Walking runs at `5.0 fps`, with tracked baseline normalization and backing-pixel alignment to reduce small-size jitter.
@@ -410,7 +410,7 @@ Skill 会先验证资源，并在写入仓库外的位置之前显示实际安�
 
 ### 大小与动画
 
-桌面 App 的待机尺寸仍是仓库同款的小尺寸：宽 `97 px`，高度按原始 `192:208` 单元格比例计算。向左走、向右走和打滚时，会以脚底中央为锚点平滑放大到 `1.5 倍`，完整身体不会因横向动作而显得缩小。App 同时禁止重复运行；再次打开妹妹时，会继续使用屏幕上唯一的那一只。
+桌面 App 的待机尺寸仍是仓库同款的小尺寸：宽 `97 px`，高度按原始 `192:208` 单元格比例计算。向左走和向右走会平滑放大到 `1.5 倍`；打滚在原有 `1.5 倍`基础上再放大 `1.2 倍`，最终为 `1.8 倍`，并继续以底部中央为锚点，避免动作看起来偏小。App 同时禁止重复运行；再次打开妹妹时，会继续使用屏幕上唯一的那一只。
 
 - 向左走和向右走保留各自素材中的身体动作。由于成片8每一帧都截断了尾巴，程序只使用成片7中真实尾巴的镜像画面，逐帧补齐成片8缺失的尾巴。
 - 步行速度为 `5.0 fps`，并用基线跟踪和屏幕像素对齐减少小尺寸移动时的顿挫。

@@ -35,7 +35,7 @@ Behavior:
 - custom actions use source-appropriate `1.4–5.0 fps` timing; the source MP4 pixels supply the final real-dog appearance and motion, with the green set removed and the eating bowl retained
 - all visible desktop modes and direct drag/edge frames resolve to live-video rows `11–18`; the illustrated Codex atlas remains bundled for Codex compatibility but is never selected as a desktop fallback
 - every non-looping action holds its first frame, reaches and holds its last frame without wrapping, then blends that terminal frame into frame 0 of the incoming action for `0.62 s`
-- uses the repository's small resting width of `97 px`; left walk, right walk, and rolling expand smoothly to `1.5×` while preserving the atlas `192:208` aspect ratio and keeping the full body visible
+- uses the repository's small resting width of `97 px`; left/right walking expands smoothly to `1.5×`, while belly/rolling expands to `1.8×` (`1.2×` the former roll rendering), preserving the atlas `192:208` aspect ratio and keeping the full body visible
 - permits only one LaunchServices instance through `LSMultipleInstancesProhibited`; launch with `open` and never `open -n`
 - uses relaxed motion timing: real-video directional walking is `5.0 fps` at `42 pt/s`, real-video waiting is `1.4 fps`, autonomous walking is selected only about 12 percent of ordinary decisions, and most decisions choose a `10–22 s` idle period
 - renders walking-left and walking-right from their own keyed real-video body-motion rows, with tracked baseline normalization and backing-pixel-aligned window movement; because every supplied right-walk frame clips the tail, only the missing tail is completed from mirrored real-tail pixels in the paired left-walk source

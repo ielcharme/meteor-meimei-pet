@@ -80,9 +80,10 @@ static CGFloat MMDisplayScaleForMode(MMPetMode mode) {
     switch (mode) {
         case MMPetModeWalkRight:
         case MMPetModeWalkLeft:
+            return 1.5;
         case MMPetModeBelly:
         case MMPetModeRoll:
-            return 1.5;
+            return 1.8;
         default:
             return 1.0;
     }
@@ -1294,7 +1295,7 @@ int main(int argc, const char *argv[]) {
             return 0;
         }
         if ([NSProcessInfo.processInfo.arguments containsObject:@"--print-behavior-config"]) {
-            printf("single_instance=true fixed_pet_width=97 enlarged_action_scale=1.5 enlarged_actions=walk-left-walk-right-roll walk_fps=5.0 walk_speed=42 idle_fps=1.4 play_fps=1.5 custom_action_fps=1.4-5.0 custom_action_rows=11-18 custom_action_source=keyed-live-video video_actions=head-tilt-eating-roll-waiting-startup-walk-left-walk-right-expectant illustrated_fallback=false action_transition=tail-to-head-crossfade transition_seconds=0.62 endpoint_completion=entry-hold-exit-hold-clamped-last-frame double_click=cold-joke petting=eating petting_distance_px=84 petting_cooldown_seconds=12 automatic_behavior=calm corner_hide_seconds=300 hover_reveal=eating-to-corner focus_protection=typing-fullscreen-media cinema_mode=manual wellness_interval_seconds=3600 wellness_display_seconds=10 work_active_window_seconds=300 right_click_quit=temporary left_source=keyed-live-video right_source=keyed-live-video-with-real-tail-completion approach_trigger=expectant\n");
+            printf("single_instance=true fixed_pet_width=97 enlarged_action_scale=1.5-1.8 walk_action_scale=1.5 roll_action_scale=1.8 enlarged_actions=walk-left-walk-right-roll walk_fps=5.0 walk_speed=42 idle_fps=1.4 play_fps=1.5 custom_action_fps=1.4-5.0 custom_action_rows=11-18 custom_action_source=keyed-live-video video_actions=head-tilt-eating-roll-waiting-startup-walk-left-walk-right-expectant illustrated_fallback=false action_transition=tail-to-head-crossfade transition_seconds=0.62 endpoint_completion=entry-hold-exit-hold-clamped-last-frame double_click=cold-joke petting=eating petting_distance_px=84 petting_cooldown_seconds=12 automatic_behavior=calm corner_hide_seconds=300 hover_reveal=eating-to-corner focus_protection=typing-fullscreen-media cinema_mode=manual wellness_interval_seconds=3600 wellness_display_seconds=10 work_active_window_seconds=300 right_click_quit=temporary left_source=keyed-live-video right_source=keyed-live-video-with-real-tail-completion approach_trigger=expectant\n");
             return 0;
         }
         NSApplication *app = NSApplication.sharedApplication;
