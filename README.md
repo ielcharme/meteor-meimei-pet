@@ -45,6 +45,7 @@ This repository contains:
 - Move the pointer back and forth over her body to pet her; after recognizing the petting gesture, she responds with her expectant “coming closer” action. A short cooldown prevents accidental repeats.
 - When dragged upward, Meimei follows the pointer with her expectant “coming closer to you” action and drops naturally when released.
 - During recent computer use, her rolling/belly-up action appears naturally about once every 8–18 minutes; the menu and single-click play can still trigger it directly.
+- After three minutes without direct interaction, she plays a smooth little routine in this exact order: walk left → head tilt → roll → walk right. If she is still left alone, the routine can repeat after another three minutes, so rolling appears more often without making ordinary action changes busier.
 - Eating is scheduled only three times a day in local time: `08:30`, `12:00`, and `19:00`. Each meal lasts 30 minutes; random play, clicks, petting, and the action menu do not add extra meals.
 - When parked in a bottom corner and ignored for five minutes, she retreats into the screen edge.
 - Hover over the visible edge of her body and she jumps back out to the same corner.
@@ -299,6 +300,7 @@ No open-source license is currently attached. Public visibility does not grant p
 - 在妹妹身上来回移动鼠标，就像抚摸她一样；识别到抚摸后会播放“一脸期待／靠近你”，并设有短暂冷却，避免误触后连续播放。
 - 向上拖动时，她会跟随鼠标播放“一脸期待／靠近你”；松手后自然落回桌面。
 - 电脑近期有人使用时，妹妹大约每隔 8–18 分钟会自然地打滚、翻肚皮一次；菜单和单击玩耍仍然可以直接触发。
+- 连续 3 分钟没有直接互动后，妹妹会按固定顺序表演一段连贯的小剧场：向左走 → 歪头杀 → 打滚 → 向右走。如果还是没人理她，再过 3 分钟可以重复一次；这样打滚会更常出现，但普通动作切换不会变得更忙。
 - 吃饭只按本机时间每天出现三次：早上 `08:30`、中午 `12:00`、晚上 `19:00`，每次持续 30 分钟。随机玩耍、单击、抚摸和动作菜单都不会增加额外的吃饭次数。
 - 把她放在屏幕左下角或右下角，5 分钟没有互动后，她会躲进屏幕边框。
 - 鼠标放到露在边框外的部分时，她会跳出来并停在原来的桌角。

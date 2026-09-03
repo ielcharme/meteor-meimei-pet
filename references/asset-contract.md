@@ -42,6 +42,7 @@ Behavior:
 - renders walking-left and walking-right from their own keyed real-video body-motion rows, with tracked baseline normalization and backing-pixel-aligned window movement; because every supplied right-walk frame clips the tail, only the missing tail is completed from mirrored real-tail pixels in the paired left-walk source
 - upward dragging and the gravity drop use the expectant/approach row while following the pointer and returning to the screen baseline
 - during recent computer activity, one randomized timer plays the rolling/belly-up row about every `8–18 minutes`, only from an idle/review state; direct menu and single-click triggers remain available and reset the timer
+- after `180 s` without direct interaction, waits for a safe visible idle/review state and plays one uninterrupted walk-left → head-tilt → roll → walk-right routine; direct interaction cancels it, and another routine is scheduled `180 s` after completion if she remains ignored
 - the eating row loops only during local-time windows `08:30–09:00`, `12:00–12:30`, and `19:00–19:30`; random play, single-click, petting, edge emergence, jumping, and the action menu cannot trigger extra meals
 - when manually parked at the left or right bottom edge, five minutes without direct pet interaction triggers a slow retreat that leaves a clickable `24 pt` peek
 - the peeking area has an always-active hover tracker; mouse entry triggers a `0.82 s` eased hop back to the same corner and resets the five-minute timer without starting a walk
@@ -50,7 +51,7 @@ Behavior:
 - a due reminder waits for the three-second typing quiet period before appearing; when it temporarily reveals an edge-hidden pet, the pet returns to that edge after the bubble closes
 - hides during keyboard activity and returns to the same state and location after about `3 s` without a key event
 - hides while the foreground app has a full-screen window or is a known media player; manual menu-bar cinema mode covers windowed browser playback without inspecting its content
-- single-click to play after the double-click interval; double-click to show an immediate offline cold joke; move the pointer back and forth by `84 pt` over the pet to trigger eating, followed by a `12 s` petting cooldown; drag to reposition; right-click the pet and choose `暂时退出妹妹` to terminate the running app without uninstalling it; menu-bar controls to recall, play, tell a joke, toggle cinema mode, pause, hide, or quit
+- single-click to play after the double-click interval; double-click to show an immediate offline cold joke; move the pointer back and forth by `84 pt` over the pet to trigger the expectant action, followed by a `12 s` petting cooldown; drag to reposition; right-click the pet and choose `暂时退出妹妹` to terminate the running app without uninstalling it; menu-bar controls to recall, play, tell a joke, toggle cinema mode, pause, hide, or quit
 - focus protection may read only anonymous seconds-since-last-key-event, frontmost app identity, and window geometry; it must not record key values or inspect screen, browser, or conversation content
 - no network, telemetry, conversations, credentials, login-item persistence, Accessibility permission, screen recording, or protected-device access
 

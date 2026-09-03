@@ -439,6 +439,7 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
 @property(nonatomic) NSTimeInterval nextJokeAt;
 @property(nonatomic) NSTimeInterval nextWellnessAt;
 @property(nonatomic) NSTimeInterval nextRollAt;
+@property(nonatomic) NSTimeInterval nextIdleRoutineAt;
 @property(nonatomic) NSTimeInterval bubbleHideAt;
 @property(nonatomic) NSInteger activeMealKey;
 @property(nonatomic) MMPetMode mode;
@@ -454,7 +455,10 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
 @property(nonatomic) CGFloat dropVelocity;
 @property(nonatomic) CGFloat edgeEmergenceStartX;
 @property(nonatomic) NSInteger parkedEdge;
+@property(nonatomic) NSInteger idleRoutineStep;
+@property(nonatomic) NSInteger idleRoutineReturnEdge;
 @property(nonatomic) NSTimeInterval lastInteractionAt;
+@property(nonatomic) CGFloat idleRoutineOriginX;
 @property(nonatomic) NSTimeInterval edgeEmergenceElapsed;
 @property(nonatomic) NSTimeInterval nextFocusProtectionCheckAt;
 @property(nonatomic) NSInteger wellnessReturnEdge;
@@ -470,6 +474,7 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
 @property(nonatomic) BOOL edgeEmerging;
 @property(nonatomic) BOOL wellnessReminderActive;
 @property(nonatomic) BOOL mealActive;
+@property(nonatomic) BOOL idleRoutineActive;
 @property(nonatomic, copy) void (^onPauseChanged)(BOOL paused);
 @property(nonatomic, copy) void (^onVisibilityChanged)(BOOL hidden);
 @property(nonatomic, copy) void (^onCinemaModeChanged)(BOOL enabled);
@@ -486,6 +491,11 @@ static NSArray<NSString *> *MMWellnessMessages(void) {
 - (void)dragFinished;
 - (void)scheduleNextRollFrom:(NSTimeInterval)now;
 - (void)maybePlayScheduledRoll:(NSTimeInterval)now;
+- (void)scheduleIdleRoutineFrom:(NSTimeInterval)now;
+- (void)cancelIdleRoutineFrom:(NSTimeInterval)now;
+- (void)maybeStartIdleRoutine:(NSTimeInterval)now;
+- (void)advanceIdleRoutine;
+- (void)beginIdleRoutineWalkRight:(BOOL)goRight;
 - (void)updateScheduledMealAtUptime:(NSTimeInterval)now;
 - (void)updateDisplayScale:(NSTimeInterval)now;
 - (void)setDisplayScaleImmediately:(CGFloat)scale;
@@ -499,6 +509,8 @@ static const NSTimeInterval MMJokeDisplayDuration = 8.0;
 static const NSTimeInterval MMWellnessInterval = 60.0 * 60.0;
 static const NSTimeInterval MMRollIntervalMinimum = 8.0 * 60.0;
 static const NSTimeInterval MMRollIntervalMaximum = 18.0 * 60.0;
+static const NSTimeInterval MMIdleRoutineDelay = 3.0 * 60.0;
+static const CGFloat MMIdleRoutineWalkDistance = 150.0;
 static const NSTimeInterval MMWellnessDisplayDuration = 10.0;
 static const NSTimeInterval MMWorkActivityWindow = 5.0 * 60.0;
 static const NSTimeInterval MMCornerHideDelay = 5.0 * 60.0;
@@ -568,6 +580,7 @@ static const double MMJumpDuration = 1.8;
         [self scheduleNextJokeFrom:_lastTick];
         [self scheduleNextWellnessFrom:_lastTick];
         [self scheduleNextRollFrom:_lastTick];
+        [self scheduleIdleRoutineFrom:_lastTick];
         _timer = [NSTimer timerWithTimeInterval:1.0 / 30.0
                                         target:self
                                       selector:@selector(tick:)
@@ -581,6 +594,7 @@ static const double MMJumpDuration = 1.8;
 - (void)dealloc { [self.timer invalidate]; }
 
 - (void)togglePause {
+    [self noteInteraction];
     self.paused = !self.paused;
     if (self.paused) {
         [self enterMode:MMPetModeIdle duration:DBL_MAX];
@@ -591,6 +605,7 @@ static const double MMJumpDuration = 1.8;
 }
 
 - (void)toggleVisibility {
+    [self noteInteraction];
     self.petHidden = !self.petHidden;
     if (self.petHidden) {
         [self.panel orderOut:nil];
@@ -643,6 +658,7 @@ static const double MMJumpDuration = 1.8;
 }
 
 - (void)toggleCinemaMode {
+    [self noteInteraction];
     self.cinemaMode = !self.cinemaMode;
     self.nextFocusProtectionCheckAt = 0;
     [self updateFocusProtection:NSProcessInfo.processInfo.systemUptime];
@@ -677,6 +693,7 @@ static const double MMJumpDuration = 1.8;
     if (self.paused || self.petHidden || self.focusProtected) return;
     if (!self.bubblePanel.visible && now >= self.nextJokeAt) [self showRandomJoke];
     [self maybePlayScheduledRoll:now];
+    [self maybeStartIdleRoutine:now];
     if (self.dragging) return;
 
     if (self.dropping) {
@@ -722,14 +739,17 @@ static const double MMJumpDuration = 1.8;
             break;
     }
     [self updateBubblePosition];
-    if (self.behaviorRemaining <= 0) [self chooseNextBehavior:NO];
+    if (self.behaviorRemaining <= 0) {
+        if (self.idleRoutineActive) [self advanceIdleRoutine];
+        else [self chooseNextBehavior:NO];
+    }
 }
 
 - (void)updateWalking:(NSTimeInterval)delta {
     if (self.animationElapsed < 0) return;
     NSScreen *screen = [self currentScreen];
     if (!screen || !self.targetX) {
-        [self chooseNextBehavior:NO];
+        if (!self.idleRoutineActive) [self chooseNextBehavior:NO];
         return;
     }
     CGFloat direction = self.mode == MMPetModeWalkRight ? 1 : -1;
@@ -742,7 +762,8 @@ static const double MMJumpDuration = 1.8;
 
     CGFloat destination = self.targetX.doubleValue;
     if ((direction > 0 && x >= destination) || (direction < 0 && x <= destination)) {
-        [self chooseNextBehavior:YES];
+        if (self.idleRoutineActive) [self advanceIdleRoutine];
+        else [self chooseNextBehavior:YES];
     }
 }
 
@@ -824,10 +845,23 @@ static const double MMJumpDuration = 1.8;
     NSRect oldFrame = self.panel.frame;
     NSSize newSize = NSMakeSize(self.petSize.width * scale, self.petSize.height * scale);
     CGFloat x;
+    NSInteger visibleAnchorEdge = self.parkedEdge;
+    if (self.idleRoutineActive && self.idleRoutineStep == 1 && self.idleRoutineReturnEdge != 0) {
+        visibleAnchorEdge = self.idleRoutineReturnEdge;
+    }
     if (self.edgeHidden && self.parkedEdge < 0) {
         x = NSMaxX(oldFrame) - newSize.width;
     } else if (self.edgeHidden && self.parkedEdge > 0) {
         x = NSMinX(oldFrame);
+    } else if (visibleAnchorEdge != 0) {
+        NSScreen *screen = [self currentScreen];
+        if (screen) {
+            x = visibleAnchorEdge < 0
+                ? NSMinX(screen.visibleFrame)
+                : NSMaxX(screen.visibleFrame) - newSize.width;
+        } else {
+            x = NSMidX(oldFrame) - newSize.width / 2.0;
+        }
     } else {
         x = NSMidX(oldFrame) - newSize.width / 2.0;
     }
@@ -1042,7 +1076,9 @@ static const double MMJumpDuration = 1.8;
 }
 
 - (void)noteInteraction {
-    self.lastInteractionAt = NSProcessInfo.processInfo.systemUptime;
+    NSTimeInterval now = NSProcessInfo.processInfo.systemUptime;
+    self.lastInteractionAt = now;
+    [self cancelIdleRoutineFrom:now];
 }
 
 - (void)updateFocusProtection:(NSTimeInterval)now {
@@ -1138,14 +1174,117 @@ static const double MMJumpDuration = 1.8;
     self.nextRollAt = now + MMRandom(MMRollIntervalMinimum, MMRollIntervalMaximum);
 }
 
+- (void)scheduleIdleRoutineFrom:(NSTimeInterval)now {
+    self.nextIdleRoutineAt = now + MMIdleRoutineDelay;
+}
+
+- (void)cancelIdleRoutineFrom:(NSTimeInterval)now {
+    self.idleRoutineActive = NO;
+    self.idleRoutineStep = 0;
+    self.idleRoutineReturnEdge = 0;
+    self.targetX = nil;
+    [self scheduleIdleRoutineFrom:now];
+}
+
+- (void)maybeStartIdleRoutine:(NSTimeInterval)now {
+    if (self.idleRoutineActive || now < self.nextIdleRoutineAt) return;
+    if (self.mealActive || self.wellnessReminderActive || self.bubblePanel.visible ||
+        self.dragging || self.dropping || self.edgeRetreating || self.edgeHidden ||
+        self.edgeEmerging || self.cinemaMode) return;
+    if (self.mode != MMPetModeIdle && self.mode != MMPetModeReview) return;
+
+    self.idleRoutineActive = YES;
+    self.idleRoutineStep = 0;
+    self.idleRoutineReturnEdge = self.parkedEdge;
+    self.parkedEdge = 0;
+    self.targetX = nil;
+    [self advanceIdleRoutine];
+}
+
+- (void)advanceIdleRoutine {
+    if (!self.idleRoutineActive) return;
+    self.targetX = nil;
+    switch (self.idleRoutineStep) {
+        case 0:
+            self.idleRoutineStep = 1;
+            [self beginIdleRoutineWalkRight:NO];
+            return;
+        case 1:
+            self.idleRoutineStep = 2;
+            [self enterMode:MMPetModeCute duration:MMActionDuration(MMPetModeCute)];
+            return;
+        case 2:
+            self.idleRoutineStep = 3;
+            [self enterMode:MMPetModeRoll duration:MMActionDuration(MMPetModeRoll)];
+            [self scheduleNextRollFrom:NSProcessInfo.processInfo.systemUptime];
+            return;
+        case 3:
+            self.idleRoutineStep = 4;
+            [self beginIdleRoutineWalkRight:YES];
+            return;
+        default:
+            break;
+    }
+
+    NSInteger returnEdge = self.idleRoutineReturnEdge;
+    self.idleRoutineActive = NO;
+    self.idleRoutineStep = 0;
+    self.idleRoutineReturnEdge = 0;
+    [self scheduleIdleRoutineFrom:NSProcessInfo.processInfo.systemUptime];
+    if (returnEdge != 0) {
+        self.parkedEdge = returnEdge;
+        NSScreen *screen = [self currentScreen];
+        if (screen) {
+            CGFloat x = returnEdge < 0
+                ? NSMinX(screen.visibleFrame)
+                : NSMaxX(screen.visibleFrame) - NSWidth(self.panel.frame);
+            [self.panel setFrameOrigin:NSMakePoint(x, self.baseY)];
+        }
+        [self enterMode:MMPetModeIdle duration:DBL_MAX];
+    } else {
+        [self enterMode:MMPetModeIdle duration:MMRandom(10.0, 22.0)];
+    }
+}
+
+- (void)beginIdleRoutineWalkRight:(BOOL)goRight {
+    NSScreen *screen = [self currentScreen];
+    if (!screen) {
+        [self cancelIdleRoutineFrom:NSProcessInfo.processInfo.systemUptime];
+        [self enterMode:MMPetModeIdle duration:MMRandom(10.0, 22.0)];
+        return;
+    }
+
+    self.baseY = NSMinY(screen.visibleFrame) + 6;
+    CGFloat minX = NSMinX(screen.visibleFrame);
+    CGFloat walkWidth = self.petSize.width * MMDisplayScaleForMode(MMPetModeWalkRight);
+    CGFloat maxX = NSMaxX(screen.visibleFrame) - walkWidth;
+    CGFloat currentX = NSMidX(self.panel.frame) - walkWidth / 2.0;
+    currentX = MIN(MAX(currentX, minX), maxX);
+
+    if (!goRight) {
+        if (self.idleRoutineReturnEdge < 0) currentX = minX;
+        else if (self.idleRoutineReturnEdge > 0) currentX = maxX;
+        self.idleRoutineOriginX = currentX;
+    }
+
+    CGFloat destination = goRight
+        ? MIN(MAX(self.idleRoutineOriginX, minX), maxX)
+        : MAX(minX, currentX - MMIdleRoutineWalkDistance);
+    CGFloat distance = fabs(destination - currentX);
+    self.targetX = distance >= 24.0 ? @(destination) : nil;
+    MMPetMode walkMode = goRight ? MMPetModeWalkRight : MMPetModeWalkLeft;
+    double duration = self.targetX ? distance / MMWalkSpeed + 0.35 : 1.8;
+    [self enterMode:walkMode duration:duration];
+}
+
 - (void)updateScheduledMealAtUptime:(NSTimeInterval)now {
-    (void)now;
     NSTimeInterval remaining = 0;
     NSInteger mealKey = MMScheduledMealKey([NSDate date], &remaining);
     if (mealKey == 0) {
         if (!self.mealActive) return;
         self.mealActive = NO;
         self.activeMealKey = 0;
+        [self scheduleIdleRoutineFrom:now];
         if (self.mode == MMPetModeEat && !self.dragging && !self.dropping) {
             [self enterMode:MMPetModeIdle duration:self.paused ? DBL_MAX : MMRandom(10.0, 22.0)];
         }
@@ -1155,6 +1294,7 @@ static const double MMJumpDuration = 1.8;
     BOOL newMeal = self.activeMealKey != mealKey;
     self.activeMealKey = mealKey;
     self.mealActive = YES;
+    if (newMeal) [self cancelIdleRoutineFrom:now];
     if (self.petHidden || self.paused || self.focusProtected || self.cinemaMode ||
         self.dragging || self.dropping || self.edgeRetreating || self.edgeHidden ||
         self.edgeEmerging || self.bubblePanel.visible ||
@@ -1387,7 +1527,7 @@ int main(int argc, const char *argv[]) {
             return 0;
         }
         if ([NSProcessInfo.processInfo.arguments containsObject:@"--print-behavior-config"]) {
-            printf("single_instance=true fixed_pet_width=97 enlarged_action_scale=1.5 walk_action_scale=1.5 roll_action_scale=1.5 enlarged_actions=walk-left-walk-right-roll walk_fps=5.0 walk_speed=42 idle_fps=1.4 play_fps=1.5 custom_action_fps=1.4-5.0 custom_action_rows=11-18 custom_action_source=keyed-live-video video_actions=head-tilt-eating-roll-waiting-startup-walk-left-walk-right-expectant action_atlas_dimensions=3072x3328 action_cell_pixels=384x416 action_atlas_lossless=true source_video_resolution=720x720 render_interpolation=high illustrated_fallback=false action_transition=tail-to-head-crossfade transition_seconds=0.62 endpoint_completion=entry-hold-exit-hold-clamped-last-frame double_click=cold-joke petting=expectant petting_distance_px=84 petting_cooldown_seconds=12 meal_trigger=scheduled-only meal_schedule_local=08:30,12:00,19:00 meal_duration_seconds=1800 automatic_behavior=calm automatic_roll=periodic roll_interval_seconds=480-1080 roll_active_only=true corner_hide_seconds=300 hover_reveal=expectant-to-corner focus_protection=typing-fullscreen-media cinema_mode=manual wellness_interval_seconds=3600 wellness_display_seconds=10 work_active_window_seconds=300 right_click_quit=temporary left_source=keyed-live-video right_source=keyed-live-video-with-real-tail-completion approach_trigger=expectant upward_drag=expectant drop_action=expectant\n");
+            printf("single_instance=true fixed_pet_width=97 enlarged_action_scale=1.5 walk_action_scale=1.5 roll_action_scale=1.5 enlarged_actions=walk-left-walk-right-roll walk_fps=5.0 walk_speed=42 idle_fps=1.4 play_fps=1.5 custom_action_fps=1.4-5.0 custom_action_rows=11-18 custom_action_source=keyed-live-video video_actions=head-tilt-eating-roll-waiting-startup-walk-left-walk-right-expectant action_atlas_dimensions=3072x3328 action_cell_pixels=384x416 action_atlas_lossless=true source_video_resolution=720x720 render_interpolation=high illustrated_fallback=false action_transition=tail-to-head-crossfade transition_seconds=0.62 endpoint_completion=entry-hold-exit-hold-clamped-last-frame double_click=cold-joke petting=expectant petting_distance_px=84 petting_cooldown_seconds=12 meal_trigger=scheduled-only meal_schedule_local=08:30,12:00,19:00 meal_duration_seconds=1800 automatic_behavior=calm automatic_roll=periodic-and-idle-routine roll_interval_seconds=480-1080 roll_active_only=true idle_routine_after_seconds=180 idle_routine=walk-left-head-tilt-roll-walk-right idle_routine_repeat_seconds=180 corner_hide_seconds=300 hover_reveal=expectant-to-corner focus_protection=typing-fullscreen-media cinema_mode=manual wellness_interval_seconds=3600 wellness_display_seconds=10 work_active_window_seconds=300 right_click_quit=temporary left_source=keyed-live-video right_source=keyed-live-video-with-real-tail-completion approach_trigger=expectant upward_drag=expectant drop_action=expectant\n");
             return 0;
         }
         NSApplication *app = NSApplication.sharedApplication;
