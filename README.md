@@ -39,12 +39,13 @@ This repository contains:
 
 - Walks left and right, rests, greets, plays, and asks for attention at a relaxed pace.
 - Includes eight desktop-only actions cut directly from the latest real border-collie green-screen footage: head tilt, eating, rolling over, waiting, startup, walking left, walking right, and an expectant look.
-- Greeting uses the head-tilt clip; edge emergence uses eating; upward dragging and dropping use the expectant/approach clip; focused review uses waiting. Startup plays once when the app opens.
+- Greeting uses the head-tilt clip; edge emergence and upward dragging use the expectant/approach clip; focused review uses waiting. Startup plays once when the app opens.
 - Changes actions through completed endpoint holds and a gentle crossfade instead of a hard cut.
 - Single-click Meimei for a playful action; double-click her to hear an offline cold joke immediately.
-- Move the pointer back and forth over her body to pet her; after recognizing the petting gesture, she plays the eating action. A short cooldown prevents accidental repeats.
+- Move the pointer back and forth over her body to pet her; after recognizing the petting gesture, she responds with her expectant “coming closer” action. A short cooldown prevents accidental repeats.
 - When dragged upward, Meimei follows the pointer with her expectant “coming closer to you” action and drops naturally when released.
 - During recent computer use, her rolling/belly-up action appears naturally about once every 8–18 minutes; the menu and single-click play can still trigger it directly.
+- Eating is scheduled only three times a day in local time: `08:30`, `12:00`, and `19:00`. Each meal lasts 30 minutes; random play, clicks, petting, and the action menu do not add extra meals.
 - When parked in a bottom corner and ignored for five minutes, she retreats into the screen edge.
 - Hover over the visible edge of her body and she jumps back out to the same corner.
 - Occasionally tells a bundled offline cold joke in a speech bubble, even without interaction.
@@ -94,7 +95,7 @@ After launch, a paw icon appears in the macOS menu bar. Its menu can:
 
 - Call Meimei to the current screen
 - Play with Meimei
-- Choose a specific action: head tilt, eat, roll, wait, startup, or expectant look
+- Choose a specific action: head tilt, roll, wait, startup, or expectant look
 - Ask for a cold joke
 - Enable or disable Cinema Mode
 - Pause walking
@@ -159,12 +160,12 @@ The Skill verifies the package and shows the resolved destination before writing
 
 ### Size and animation
 
-The desktop app keeps Meimei at the repository's small `97 px` resting width, with height derived from the original `192:208` cell ratio. Walking left and right expand smoothly to `1.5×`; rolling expands to `1.8×` (`1.2×` larger than its previous `1.5×` rendering) from the bottom center so her complete body no longer looks reduced. It also prohibits multiple running instances, so opening Meimei again reuses the one already on screen.
+The desktop app keeps Meimei at the repository's small `97 px` resting width, with height derived from the original `192:208` aspect ratio. Walking left, walking right, and rolling all expand smoothly to `1.5×` from the bottom center so her complete body stays visible. It also prohibits multiple running instances, so opening Meimei again reuses the one already on screen.
 
 - Leftward and rightward movement keep their own source-body motion. Because every frame of the supplied right-walk clip cuts off the tail, only the missing tail is completed frame by frame from mirrored real-tail pixels in the paired left-walk clip.
 - Walking runs at `5.0 fps`, with tracked baseline normalization and backing-pixel alignment to reduce small-size jitter.
 - Real-dog waiting runs at `1.4 fps`; other non-walking actions remain deliberately calm.
-- The eight real-dog actions run at `1.4–5.0 fps` and live in a separate desktop-only atlas. Every visible desktop state now uses this real-dog atlas; the illustrated atlas is no longer used as a fallback. The validated Codex `8×11` atlas remains unchanged.
+- The eight real-dog actions run at `1.4–5.0 fps` and live in a separate desktop-only atlas. It uses lossless WebP at `3072×3328`, with `384×416` cells—twice the former pixel dimensions—and high-quality interpolation. This keeps all useful detail available from the original `720×720` MP4 files, including at `1.5×` Retina rendering. The validated Codex `8×11` atlas remains unchanged.
 - One-shot actions hold their first and last frames instead of wrapping abruptly back to frame 1. Every action change then blends the outgoing terminal frame into the incoming head frame for `0.62 s` before the new animation continues.
 - Autonomous walks and playful actions are deliberately uncommon, with `10–22 s` resting periods between most decisions.
 
@@ -179,7 +180,7 @@ The desktop app keeps Meimei at the repository's small `97 px` resting width, wi
 | --- | --- | --- | --- |
 | ![Meimei starting up](assets/desktop-preview/startup.gif) | ![Meimei walking left](assets/desktop-preview/walk-left.gif) | ![Meimei walking right](assets/desktop-preview/walk-right.gif) | ![Meimei looking expectant](assets/desktop-preview/expectant.gif) |
 
-The source MP4 files provide the final dog pixels and real motion. Their green backgrounds are removed frame by frame. The missing right-walk tail is reconstructed locally from the paired real left-walk tail; no online generation service is used. The app contains only the compact transparent action atlas, while the original videos are not bundled or uploaded.
+The source MP4 files provide the final dog pixels and real motion. Their green backgrounds are removed frame by frame, then stored in a lossless 2× desktop atlas without another lossy video encode. The missing right-walk tail is reconstructed locally from the paired real left-walk tail; no online generation service is used. The app contains only the transparent action atlas, while the original videos are not bundled or uploaded.
 
 ![Right-walk tail completion QA](assets/desktop-preview/walk-right-tail-completion.png)
 
@@ -292,12 +293,13 @@ No open-source license is currently attached. Public visibility does not grant p
 
 - 用松弛的节奏左右散步、休息、打招呼、玩耍和期待互动。
 - 直接从最新真实边牧绿幕视频中抠出八个桌面专属动作：歪头杀、吃饭、打滚、等待、开机启动、向左走、向右走和一脸期待。
-- 打招呼使用歪头杀；从边框跳出使用吃饭；向上拖动、悬空和放下使用“一脸期待／靠近你”；专注查看使用等待。App 打开时会完整播放一次开机启动。
+- 打招呼使用歪头杀；从边框跳出和向上拖动使用“一脸期待／靠近你”；专注查看使用等待。App 打开时会完整播放一次开机启动。
 - 不同动作会先完整保留首帧和尾帧，再使用柔和的“上一动作尾帧 → 下一动作首帧”过渡，不再硬切。
 - 单击妹妹会触发互动动作；双击妹妹会马上讲一个本地冷笑话。
-- 在妹妹身上来回移动鼠标，就像抚摸她一样；识别到抚摸后会播放吃饭动作，并设有短暂冷却，避免误触后连续播放。
+- 在妹妹身上来回移动鼠标，就像抚摸她一样；识别到抚摸后会播放“一脸期待／靠近你”，并设有短暂冷却，避免误触后连续播放。
 - 向上拖动时，她会跟随鼠标播放“一脸期待／靠近你”；松手后自然落回桌面。
 - 电脑近期有人使用时，妹妹大约每隔 8–18 分钟会自然地打滚、翻肚皮一次；菜单和单击玩耍仍然可以直接触发。
+- 吃饭只按本机时间每天出现三次：早上 `08:30`、中午 `12:00`、晚上 `19:00`，每次持续 30 分钟。随机玩耍、单击、抚摸和动作菜单都不会增加额外的吃饭次数。
 - 把她放在屏幕左下角或右下角，5 分钟没有互动后，她会躲进屏幕边框。
 - 鼠标放到露在边框外的部分时，她会跳出来并停在原来的桌角。
 - 即使没有互动，她也会偶尔用桌面气泡讲一个内置的本地冷笑话。
@@ -347,7 +349,7 @@ open "$HOME/Applications/妹妹.app"
 
 - 叫妹妹过来
 - 和妹妹玩
-- 指定妹妹歪头、吃饭、打滚、等待、开机启动或一脸期待
+- 指定妹妹歪头、打滚、等待、开机启动或一脸期待
 - 让妹妹讲冷笑话
 - 开启或退出观影模式
 - 暂停散步
@@ -412,12 +414,12 @@ Skill 会先验证资源，并在写入仓库外的位置之前显示实际安�
 
 ### 大小与动画
 
-桌面 App 的待机尺寸仍是仓库同款的小尺寸：宽 `97 px`，高度按原始 `192:208` 单元格比例计算。向左走和向右走会平滑放大到 `1.5 倍`；打滚在原有 `1.5 倍`基础上再放大 `1.2 倍`，最终为 `1.8 倍`，并继续以底部中央为锚点，避免动作看起来偏小。App 同时禁止重复运行；再次打开妹妹时，会继续使用屏幕上唯一的那一只。
+桌面 App 的待机尺寸仍是仓库同款的小尺寸：宽 `97 px`，高度按原始 `192:208` 比例计算。向左走、向右走和打滚都平滑放大到 `1.5 倍`，并继续以底部中央为锚点，保证全身完整。App 同时禁止重复运行；再次打开妹妹时，会继续使用屏幕上唯一的那一只。
 
 - 向左走和向右走保留各自素材中的身体动作。由于成片8每一帧都截断了尾巴，程序只使用成片7中真实尾巴的镜像画面，逐帧补齐成片8缺失的尾巴。
 - 步行速度为 `5.0 fps`，并用基线跟踪和屏幕像素对齐减少小尺寸移动时的顿挫。
 - 真实等待动作使用 `1.4 fps`；其他非步行动作也保持比较松弛的节奏。
-- 八个真实狗狗动作使用 `1.4–5.0 fps`，放在单独的桌面版动作图集中。桌面上所有可见动作都改用真实狗狗图集，不会再切回电子小狗；已验证的 Codex `8×11` 图集保持不变。
+- 八个真实狗狗动作使用 `1.4–5.0 fps`，放在单独的桌面版动作图集中。图集采用无损 WebP，尺寸为 `3072×3328`，每格 `384×416`，像素尺寸是旧版的 2 倍，并使用高质量插值；这足以保留原始 `720×720` 成片在 `1.5 倍` Retina 显示时能呈现的有效细节。已验证的 Codex `8×11` 图集保持不变。
 - 单次动作会在第 1 帧和最后 1 帧短暂停留，不会在结束时突然跳回开头；换动作时再用 `0.62 秒`从上一动作尾帧平滑过渡到下一动作首帧。
 - 自动散步和玩耍会少很多，多数判断之间会先待机 `10–22 秒`，整体更像一只安静生活在屏幕上的小狗。
 
@@ -432,7 +434,7 @@ Skill 会先验证资源，并在写入仓库外的位置之前显示实际安�
 | --- | --- | --- | --- |
 | ![妹妹开机启动](assets/desktop-preview/startup.gif) | ![妹妹向左走](assets/desktop-preview/walk-left.gif) | ![妹妹向右走](assets/desktop-preview/walk-right.gif) | ![妹妹一脸期待](assets/desktop-preview/expectant.gif) |
 
-原始 MP4 同时提供最终的真实狗狗画面和动作。程序会逐帧去掉绿幕；成片8缺失的尾巴在本机使用成片7的真实尾巴素材补齐，没有调用在线生成服务。App 只打包透明动作图集，不会把原视频上传或塞进安装包。
+原始 MP4 同时提供最终的真实狗狗画面和动作。程序会逐帧去掉绿幕，再存入 2 倍分辨率的无损桌面图集，不进行第二次有损视频编码；成片8缺失的尾巴在本机使用成片7的真实尾巴素材补齐，没有调用在线生成服务。App 不会上传或打包原视频。
 
 ![向右走尾巴补全检查图](assets/desktop-preview/walk-right-tail-completion.png)
 

@@ -18,8 +18,8 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
 
-CELL_WIDTH = 192
-CELL_HEIGHT = 208
+CELL_WIDTH = 384
+CELL_HEIGHT = 416
 FRAMES_PER_ACTION = 8
 ACTION_ORDER = (
     "head-tilt",
@@ -246,8 +246,8 @@ def union_bbox(frames: list[Image.Image], threshold: int = 96) -> tuple[int, int
 def normalize_action(frames: list[Image.Image], crop: tuple[int, int, int, int]) -> list[Image.Image]:
     crop_width = crop[2] - crop[0]
     crop_height = crop[3] - crop[1]
-    available_width = CELL_WIDTH - 12
-    available_height = CELL_HEIGHT - 10
+    available_width = CELL_WIDTH - 24
+    available_height = CELL_HEIGHT - 20
     scale = min(available_width / crop_width, available_height / crop_height)
     resized_size = (
         max(1, int(round(frames[0].width * scale))),
@@ -257,7 +257,7 @@ def normalize_action(frames: list[Image.Image], crop: tuple[int, int, int, int])
     subject_width = crop_scaled[2] - crop_scaled[0]
     subject_height = crop_scaled[3] - crop_scaled[1]
     subject_left = (CELL_WIDTH - subject_width) // 2
-    subject_top = CELL_HEIGHT - 5 - subject_height
+    subject_top = CELL_HEIGHT - 10 - subject_height
     offset_x = subject_left - crop_scaled[0]
     offset_y = subject_top - crop_scaled[1]
 
@@ -394,7 +394,7 @@ def keep_largest_alpha_component(frame: Image.Image) -> tuple[Image.Image, int]:
     alpha = pixels[:, :, 3]
     lower_band = np.arange(height)[:, None] >= int(round(height * 0.52))
     solid_core = Image.fromarray(np.where(alpha >= 96, 255, 0).astype(np.uint8), mode="L")
-    near_solid_subject = np.asarray(solid_core.filter(ImageFilter.MaxFilter(11)), dtype=np.uint8) > 0
+    near_solid_subject = np.asarray(solid_core.filter(ImageFilter.MaxFilter(21)), dtype=np.uint8) > 0
     removed |= lower_band & (alpha > 0) & (alpha < 96) & ~near_solid_subject
     pixels[removed] = 0
     pixels[pixels[:, :, 3] == 0, :3] = 0
@@ -445,17 +445,17 @@ def keep_subject_and_lower_props(frame: Image.Image) -> tuple[Image.Image, int]:
         xs = np.asarray([point[1] for point in component])
         is_dog = component is largest
         is_lower_prop = (
-            len(component) >= 90
-            and int(ys.max()) + 1 >= dog_bottom - max(8, int(round(dog_height * 0.10)))
+            len(component) >= 360
+            and int(ys.max()) + 1 >= dog_bottom - max(16, int(round(dog_height * 0.10)))
             and int(ys.min()) >= dog_top + int(round(dog_height * 0.42))
-            and int(xs.max()) - int(xs.min()) >= 5
+            and int(xs.max()) - int(xs.min()) >= 10
             and (int(xs.min()) + int(xs.max())) * 0.5
             >= dog_left + dog_width * 0.42
         )
         if is_dog or is_lower_prop:
             keep_core[ys, xs] = True
     support = Image.fromarray(np.where(keep_core, 255, 0).astype(np.uint8), mode="L")
-    support = np.asarray(support.filter(ImageFilter.MaxFilter(9)), dtype=np.uint8) > 0
+    support = np.asarray(support.filter(ImageFilter.MaxFilter(17)), dtype=np.uint8) > 0
     removed = (alpha > 0) & ~support
     pixels[removed] = 0
     pixels[pixels[:, :, 3] == 0, :3] = 0
@@ -467,8 +467,8 @@ def normalize_tracked_action(frames: list[Image.Image]) -> list[Image.Image]:
     boxes = [frame_bbox(frame) for frame in frames]
     maximum_width = max(right - left for left, _, right, _ in boxes)
     maximum_height = max(bottom - top for _, top, _, bottom in boxes)
-    available_width = CELL_WIDTH - 12
-    available_height = CELL_HEIGHT - 10
+    available_width = CELL_WIDTH - 24
+    available_height = CELL_HEIGHT - 20
     scale = min(available_width / maximum_width, available_height / maximum_height)
     resized_size = (
         max(1, int(round(frames[0].width * scale))),
@@ -481,7 +481,7 @@ def normalize_tracked_action(frames: list[Image.Image]) -> list[Image.Image]:
         center_x = (left + right) * 0.5 * scale
         baseline_y = bottom * scale
         offset_x = int(round(CELL_WIDTH * 0.5 - center_x))
-        offset_y = int(round(CELL_HEIGHT - 5 - baseline_y))
+        offset_y = int(round(CELL_HEIGHT - 10 - baseline_y))
         resized = frame.resize(resized_size, Image.Resampling.LANCZOS)
         cell = Image.new("RGBA", (CELL_WIDTH, CELL_HEIGHT), (0, 0, 0, 0))
         cell.alpha_composite(resized, (offset_x, offset_y))
@@ -594,7 +594,7 @@ def loop_seam_report(cells: list[Image.Image]) -> dict[str, object]:
     }
 
 
-def checker(size: tuple[int, int], tile: int = 12) -> Image.Image:
+def checker(size: tuple[int, int], tile: int = 24) -> Image.Image:
     width, height = size
     result = Image.new("RGB", size, (242, 242, 242))
     draw = ImageDraw.Draw(result)
@@ -634,7 +634,7 @@ def write_previews(
         for cell in action_cells[action]:
             backdrop = checker((CELL_WIDTH, CELL_HEIGHT))
             backdrop.paste(cell, (0, 0), cell)
-            gif_frames.append(backdrop.resize((CELL_WIDTH * 2, CELL_HEIGHT * 2), Image.Resampling.NEAREST))
+            gif_frames.append(backdrop)
         duration_ms = int(round(1000.0 / ACTION_FPS[action]))
         gif_frames[0].save(
             verify_dir / f"{action}-live.gif",
@@ -911,13 +911,13 @@ def main() -> None:
         },
         "visualQa": {
             "verdict": "pass",
-            "note": "All eight rows use the latest real-dog footage, keep the complete body inside every 192x208 cell, preserve ordered motion at 97 px display width, and include dedicated loop-transition and source-to-tail-completion QA sheets.",
+            "note": "All eight rows use the latest 720x720 real-dog footage, keep the complete body inside every lossless 384x416 cell, preserve ordered motion at 97 px display width, and include dedicated loop-transition and source-to-tail-completion QA sheets.",
         },
     }
     args.validation.parent.mkdir(parents=True, exist_ok=True)
     args.validation.write_text(json.dumps(validation, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-    if atlas.size != (1536, 1664):
+    if atlas.size != (3072, 3328):
         raise RuntimeError(f"Unexpected atlas size: {atlas.size}")
     if validation["alpha"]["transparentRgbResidue"] != 0:
         raise RuntimeError("Transparent RGB residue remains in the action atlas.")
